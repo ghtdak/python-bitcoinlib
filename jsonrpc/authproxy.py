@@ -33,11 +33,17 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-import httplib
+try:
+    import http.client as httplib
+except ImportError:
+    import httplib
 import base64
 import json
 import decimal
-import urlparse
+try:
+    import urllib.parse as urlparse
+except ImportError:
+    import urlparse
 
 USER_AGENT = "AuthServiceProxy/0.1"
 
@@ -63,7 +69,8 @@ class AuthServiceProxy(object):
             port = self.__url.port
         self.__idcnt = 0
         authpair = "%s:%s" % (self.__url.username, self.__url.password)
-        self.__authhdr = "Basic %s" % (base64.b64encode(authpair))
+        authpair = authpair.encode('utf8')
+        self.__authhdr = "Basic ".encode('utf8') + base64.b64encode(authpair)
         if self.__url.scheme == 'https':
             self.__conn = httplib.HTTPSConnection(
                 self.__url.hostname, port, None, None, False, HTTP_TIMEOUT)
@@ -98,7 +105,9 @@ class AuthServiceProxy(object):
                 'message': 'missing HTTP response from server'
             })
 
-        resp = json.loads(httpresp.read(), parse_float=decimal.Decimal)
+        resp = httpresp.read()
+        resp = resp.decode('utf8')
+        resp = json.loads(resp, parse_float=decimal.Decimal)
         if resp['error'] != None:
             raise JSONRPCException(resp['error'])
         elif 'result' not in resp:
