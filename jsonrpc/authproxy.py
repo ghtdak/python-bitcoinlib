@@ -117,3 +117,25 @@ class AuthServiceProxy(object):
             })
         else:
             return resp['result']
+
+    def _batch(self, rpc_call_list):
+        self.__idcnt += 1
+
+        postdata = json.dumps(list(rpc_call_list))
+        self.__conn.request('POST', self.__url.path, postdata,
+                            {'Host': self.__url.hostname,
+                             'User-Agent': USER_AGENT,
+                             'Authorization': self.__authhdr,
+                             'Content-type': 'application/json'})
+
+        httpresp = self.__conn.getresponse()
+        if httpresp is None:
+            raise JSONRPCException({
+                'code': -342,
+                'message': 'missing HTTP response from server'
+            })
+
+        resp = httpresp.read()
+        resp = resp.decode('utf8')
+        resp = json.loads(resp, parse_float=decimal.Decimal)
+        return resp
