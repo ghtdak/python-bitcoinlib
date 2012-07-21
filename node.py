@@ -19,6 +19,7 @@ from Crypto.Hash import SHA256
 
 import ChainDb
 import MemPool
+from defs import *
 from datatypes import *
 from serialize import *
 from messages import *
@@ -140,7 +141,7 @@ class NodeConn(asyncore.dispatcher):
         while True:
             if len(self.recvbuf) < 4:
                 return
-            if self.recvbuf[:4] != "\xf9\xbe\xb4\xd9":
+            if self.recvbuf[:4] != MSG_START:
                 raise ValueError("got garbage %s" % repr(self.recvbuf))
             # check checksum
             if len(self.recvbuf) < 4 + 12 + 4 + 4:
@@ -174,7 +175,7 @@ class NodeConn(asyncore.dispatcher):
 
         command = message.command
         data = message.serialize()
-        tmsg = "\xf9\xbe\xb4\xd9"
+        tmsg = MSG_START
         tmsg += command
         tmsg += "\x00" * (12 - len(command))
         tmsg += struct.pack("<I", len(data))
@@ -271,6 +272,9 @@ if __name__ == '__main__':
 
     mempool = MemPool.MemPool()
     chaindb = ChainDb.ChainDb(settings['db'], mempool)
+
+    if 'loadblock' in settings:
+        chaindb.loadfile(settings['loadblock'])
 
     c = NodeConn(settings['host'], settings['port'], mempool, chaindb)
     asyncore.loop()
