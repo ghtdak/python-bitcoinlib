@@ -6,6 +6,7 @@
 #
 
 import anydbm
+from serialize import *
 
 
 class ChainDb(object):
@@ -18,7 +19,10 @@ class ChainDb(object):
         if 'height' not in self.misc:
             self.misc['height'] = str(-1)
 
-    def putblock(self, ser_hash, block):
+    def putblock(self, block):
+        block.calc_sha256()
+        ser_hash = ser_uint256(block.sha256)
+
         if ser_hash in self.blocks:
             return False
 
