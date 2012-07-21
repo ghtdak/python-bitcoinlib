@@ -11,6 +11,7 @@ import binascii
 import time
 from Crypto.Hash import SHA256
 from serialize import *
+from defs import *
 
 
 class CAddress(object):
