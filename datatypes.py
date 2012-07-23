@@ -16,13 +16,17 @@ from defs import *
 
 class CAddress(object):
 
-    def __init__(self):
+    def __init__(self, protover=MY_VERSION):
+        self.protover = protover
+        self.nTime = 0
         self.nServices = 1
         self.pchReserved = "\x00" * 10 + "\xff" * 2
         self.ip = "0.0.0.0"
         self.port = 0
 
     def deserialize(self, f):
+        if self.protover >= CADDR_TIME_VERSION:
+            self.nTime = struct.unpack("<I", f.read(4))[0]
         self.nServices = struct.unpack("<Q", f.read(8))[0]
         self.pchReserved = f.read(12)
         self.ip = socket.inet_ntoa(f.read(4))
@@ -30,6 +34,8 @@ class CAddress(object):
 
     def serialize(self):
         r = ""
+        if self.protover >= CADDR_TIME_VERSION:
+            r += struct.pack("<I", self.nTime)
         r += struct.pack("<Q", self.nServices)
         r += self.pchReserved
         r += socket.inet_aton(self.ip)
@@ -37,8 +43,8 @@ class CAddress(object):
         return r
 
     def __repr__(self):
-        return "CAddress(nServices=%i ip=%s port=%i)" % (self.nServices,
-                                                         self.ip, self.port)
+        return "CAddress(nTime=%d nServices=%i ip=%s port=%i)" % (
+            self.nTime, self.nServices, self.ip, self.port)
 
 
 class CInv(object):
