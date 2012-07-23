@@ -286,8 +286,6 @@ class CScript(object):
         self.valid = False
         while len(vch) > 0:
             opcode = ord(vch[0])
-            if opcode not in VALID_OPCODES:
-                return False
 
             sop = CScriptOp()
             sop.op = opcode
@@ -295,6 +293,8 @@ class CScript(object):
             vch = vch[1:]
 
             if opcode > OP_PUSHDATA4:
+                if opcode not in VALID_OPCODES:
+                    return False
                 self.ops.append(sop)
                 continue
 
