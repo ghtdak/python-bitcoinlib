@@ -12,6 +12,7 @@ import time
 from Crypto.Hash import SHA256
 from serialize import *
 from defs import *
+from script import CScript
 
 
 class CAddress(object):
@@ -132,6 +133,12 @@ class CTxIn(object):
         r += struct.pack("<I", self.nSequence)
         return r
 
+    def is_valid(self):
+        script = CScript()
+        if not script.tokenize(self.scriptSig):
+            return False
+        return True
+
     def __repr__(self):
         return "CTxIn(prevout=%s scriptSig=%s nSequence=%i)" % (
             repr(self.prevout), binascii.hexlify(self.scriptSig),
@@ -153,6 +160,14 @@ class CTxOut(object):
         r += struct.pack("<q", self.nValue)
         r += ser_string(self.scriptPubKey)
         return r
+
+    def is_valid(self):
+        if self.nValue < 0 or self.nValue > 21000000L * 100000000L:
+            return False
+        script = CScript()
+        if not script.tokenize(self.scriptPubKey):
+            return False
+        return True
 
     def __repr__(self):
         return "CTxOut(nValue=%i.%08i scriptPubKey=%s)" % (
@@ -190,8 +205,12 @@ class CTransaction(object):
 
     def is_valid(self):
         self.calc_sha256()
+        if not self.is_coinbase():
+            for tin in self.vin:
+                if not tin.is_valid():
+                    return False
         for tout in self.vout:
-            if tout.nValue < 0 or tout.nValue > 21000000L * 100000000L:
+            if not tout.is_valid():
                 return False
         return True
 
