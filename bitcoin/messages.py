@@ -8,14 +8,14 @@
 import struct
 import time
 import random
-from defs import *
+from coredefs import *
 from core import *
 
 
 class msg_version(object):
     command = "version"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = MIN_PROTO_VERSION
         self.nVersion = protover
         self.nServices = 1
@@ -23,7 +23,7 @@ class msg_version(object):
         self.addrTo = CAddress(MIN_PROTO_VERSION)
         self.addrFrom = CAddress(MIN_PROTO_VERSION)
         self.nNonce = random.getrandbits(64)
-        self.strSubVer = MY_SUBVERSION
+        self.strSubVer = '/python-bitcoin-0.0.1/'
         self.nStartingHeight = -1
 
     def deserialize(self, f):
@@ -71,7 +71,7 @@ class msg_version(object):
 class msg_verack(object):
     command = "verack"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
 
     def deserialize(self, f):
@@ -87,7 +87,7 @@ class msg_verack(object):
 class msg_addr(object):
     command = "addr"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.addrs = []
 
@@ -104,7 +104,7 @@ class msg_addr(object):
 class msg_alert(object):
     command = "alert"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.alert = CAlert()
 
@@ -124,7 +124,7 @@ class msg_alert(object):
 class msg_inv(object):
     command = "inv"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.inv = []
 
@@ -141,7 +141,7 @@ class msg_inv(object):
 class msg_getdata(object):
     command = "getdata"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.inv = []
 
@@ -158,7 +158,7 @@ class msg_getdata(object):
 class msg_getblocks(object):
     command = "getblocks"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.locator = CBlockLocator()
         self.hashstop = 0L
@@ -182,7 +182,7 @@ class msg_getblocks(object):
 class msg_tx(object):
     command = "tx"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.tx = CTransaction()
 
@@ -199,7 +199,7 @@ class msg_tx(object):
 class msg_block(object):
     command = "block"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.block = CBlock()
 
@@ -216,7 +216,7 @@ class msg_block(object):
 class msg_getaddr(object):
     command = "getaddr"
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
 
     def deserialize(self, f):
@@ -236,7 +236,7 @@ class msg_getaddr(object):
 class msg_ping(object):
     command = "ping"
 
-    def __init__(self, protover=MY_VERSION, nonce=0L):
+    def __init__(self, protover=PROTO_VERSION, nonce=0L):
         self.protover = protover
         self.nonce = nonce
 
@@ -257,7 +257,7 @@ class msg_ping(object):
 class msg_pong(object):
     command = "pong"
 
-    def __init__(self, protover=MY_VERSION, nonce=0L):
+    def __init__(self, protover=PROTO_VERSION, nonce=0L):
         self.protover = protover
         self.nonce = nonce
 

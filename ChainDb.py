@@ -11,7 +11,6 @@ import gdbm
 import os
 from bitcoin.serialize import *
 from bitcoin.core import *
-from defs import *
 
 
 class TxIdx(object):

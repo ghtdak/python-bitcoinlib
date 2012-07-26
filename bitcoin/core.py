@@ -11,13 +11,13 @@ import binascii
 import time
 from Crypto.Hash import SHA256
 from serialize import *
-from defs import *
+from coredefs import *
 from script import CScript
 
 
 class CAddress(object):
 
-    def __init__(self, protover=MY_VERSION):
+    def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.nTime = 0
         self.nServices = 1
@@ -72,7 +72,7 @@ class CInv(object):
 class CBlockLocator(object):
 
     def __init__(self):
-        self.nVersion = MY_VERSION
+        self.nVersion = PROTO_VERSION
         self.vHave = []
 
     def deserialize(self, f):
