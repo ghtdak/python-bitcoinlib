@@ -9,7 +9,7 @@ import struct
 import time
 import random
 from defs import *
-from datatypes import *
+from core import *
 
 
 class msg_version(object):

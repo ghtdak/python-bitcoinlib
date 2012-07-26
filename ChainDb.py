@@ -9,8 +9,8 @@ import string
 import cStringIO
 import gdbm
 import os
-from serialize import *
-from datatypes import *
+from bitcoin.serialize import *
+from bitcoin.core import *
 from defs import *
 
 
