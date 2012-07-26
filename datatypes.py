@@ -148,7 +148,7 @@ class CTxIn(object):
 class CTxOut(object):
 
     def __init__(self):
-        self.nValue = 0
+        self.nValue = -1
         self.scriptPubKey = ""
 
     def deserialize(self, f):
