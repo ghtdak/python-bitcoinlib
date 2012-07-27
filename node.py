@@ -15,6 +15,7 @@ import sys
 import re
 import random
 import cStringIO
+import copy
 from Crypto.Hash import SHA256
 
 import ChainDb
@@ -289,6 +290,9 @@ class NodeConn(asyncore.dispatcher):
         elif message.command == "getblocks":
             self.getblocks(message)
 
+        elif message.command == "getheaders":
+            self.getheaders(message)
+
         elif message.command == "getaddr":
             msg = msg_addr()
 
@@ -374,7 +378,7 @@ class NodeConn(asyncore.dispatcher):
 
         msg = msg_inv()
         while height <= end_height:
-            hash = long(self.height[str(height)])
+            hash = long(self.chaindb.height[str(height)])
             if hash == message.hashstop:
                 break
 
@@ -389,6 +393,29 @@ class NodeConn(asyncore.dispatcher):
             self.send_message(msg)
             if height <= top_height:
                 self.hash_continue = msg.inv[-1].hash
+
+    def getheaders(self, message):
+        height = self.chaindb.locate(message.locator)
+        top_height = self.getheight()
+        end_height = height + 2000
+        if end_height > top_height:
+            end_height = top_height
+
+        msg = msg_headers()
+        while height <= end_height:
+            blkhash = long(self.chaindb.height[str(height)])
+            if blkhash == message.hashstop:
+                break
+
+            db_block = self.chaindb.getblock(blkhash)
+            block = copy.copy(db_block)
+            block.vtx = []
+
+            msg.headers.append(block)
+
+            height += 1
+
+        self.send_message(msg)
 
 
 if __name__ == '__main__':
