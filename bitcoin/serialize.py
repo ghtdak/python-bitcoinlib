@@ -46,6 +46,14 @@ def ser_uint256(u):
     return rs
 
 
+def ser_uint160(u):
+    rs = ""
+    for i in xrange(5):
+        rs += struct.pack("<I", u & 0xFFFFFFFFL)
+        u >>= 32
+    return rs
+
+
 def uint160_from_str(s):
     r = 0L
     t = struct.unpack("<IIIII", s[:20])
