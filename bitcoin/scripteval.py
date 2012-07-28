@@ -7,6 +7,7 @@
 
 import copy
 from serialize import Hash, Hash160, ser_uint256, ser_uint160
+from Crypto.Hash import SHA256
 from script import *
 from core import CTxOut
 from key import CKey
