@@ -7,6 +7,8 @@
 
 import struct
 
+# generic big endian MPI format
+
 
 def bn_bytes(v, have_ext=False):
     ext = 0
@@ -76,3 +78,24 @@ def mpi2bn(s):
     if neg:
         return -v
     return v
+
+
+# bitcoin-specific little endian format, with implicit size
+def mpi2vch(s):
+    r = s[4:]  # strip size
+    r = r[::-1]  # reverse string, converting BE->LE
+    return r
+
+
+def bn2vch(v):
+    return mpi2vch(bn2mpi(v))
+
+
+def vch2mpi(s):
+    r = struct.pack(">I", len(s))  # size
+    r += s[::-1]  # reverse string, converting LE->BE
+    return sz + s
+
+
+def vch2bn(s):
+    return mpi2bn(vch2mpi(s))
