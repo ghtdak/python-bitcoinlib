@@ -40,6 +40,7 @@ class ChainDb(object):
             self.misc['height'] = str(-1)
             self.misc['msg_start'] = self.netmagic.msg_start
             self.misc['tophash'] = str(0L)
+            self.misc['total_work'] = str(0L)
 
         if 'msg_start' not in self.misc or (
                 self.misc['msg_start'] != self.netmagic.msg_start):
@@ -221,8 +222,12 @@ class ChainDb(object):
         self.height[str(self.getheight())] = str(block.sha256)
         self.to_height[str(block.sha256)] = str(self.getheight())
 
-        self.log.write("ChainDb: block %064x, height %d" %
-                       (block.sha256, self.getheight()))
+        total_work = long(self.misc['total_work'])
+        total_work += uint256_from_compact(block.nBits)
+        self.misc['total_work'] = str(total_work)
+
+        self.log.write("ChainDb: height %d, block %064x" %
+                       (self.getheight(), block.sha256))
 
         # all TX's in block are connectable; index
         neverseen = 0
