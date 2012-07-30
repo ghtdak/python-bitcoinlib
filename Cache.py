@@ -19,3 +19,6 @@ class Cache(object):
             return self.d[k]
         except:
             return None
+
+    def exists(self, k):
+        return k in self.d
