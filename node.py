@@ -113,6 +113,7 @@ class NodeConn(asyncore.dispatcher):
         #		t.addrFrom.ip = "0.0.0.0"
         #		t.addrFrom.port = 0
         #		self.send_message(t)
+
     def handle_close(self):
         self.log.write("close")
         self.state = "closed"
