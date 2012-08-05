@@ -171,11 +171,12 @@ class RequestHandler(asynchat.async_chat,
         use_buffer = False
         use_favicon = True
 
-    def __init__(self, conn, addr, server):
+    def __init__(self, conn, addr, server, privdata=None):
         asynchat.async_chat.__init__(self, conn)
         self.client_address = addr
         self.connection = conn
         self.server = server
+        self.privdata = privdata
         # set the terminator : when it is received, this means that the
         # http request is complete ; control will be passed to
         # self.found_terminator
@@ -430,10 +431,11 @@ class ExactFilesAndIndex(RequestHandler):
 class Server(asyncore.dispatcher):
     if 1:
         """Copied from http_server in medusa"""
-    def __init__(self, ip, port, handler):
+    def __init__(self, ip, port, handler, privdata=None):
         self.ip = ip
         self.port = port
         self.handler = handler
+        self.privdata = privdata
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -461,7 +463,10 @@ class Server(asyncore.dispatcher):
             return
         # creates an instance of the handler class to handle the request/response
         # on the incoming connexion
-        self.handler(conn, addr, self)
+        if self.privdata is not None:
+            self.handler(conn, addr, self, self.privdata)
+        else:
+            self.handler(conn, addr, self)
 
 
 favicon = zlib.decompress(
