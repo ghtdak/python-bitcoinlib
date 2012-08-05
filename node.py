@@ -24,7 +24,7 @@ from Crypto.Hash import SHA256
 import ChainDb
 import MemPool
 import Log
-import rpcsrv
+import httpsrv
 from bitcoin.core import *
 from bitcoin.serialize import *
 from bitcoin.messages import *
@@ -517,10 +517,10 @@ class RPCExec(object):
         return (ser_tx.encode('hex'), None)
 
 
-class RPCRequestHandler(rpcsrv.RequestHandler):
+class RPCRequestHandler(httpsrv.RequestHandler):
 
     def __init__(self, conn, addr, server, privdata):
-        rpcsrv.RequestHandler.__init__(self, conn, addr, server)
+        httpsrv.RequestHandler.__init__(self, conn, addr, server)
         self.rpc = RPCExec(privdata[0], privdata[1])
 
     def do_GET(self):
@@ -678,6 +678,6 @@ if __name__ == '__main__':
 
     c = NodeConn(settings['host'], settings['port'], log, mempool, chaindb,
                  netmagic)
-    s = rpcsrv.Server('', settings['rpcport'], RPCRequestHandler,
-                      (mempool, chaindb))
+    s = httpsrv.Server('', settings['rpcport'], RPCRequestHandler,
+                       (mempool, chaindb))
     asyncore.loop()
