@@ -50,12 +50,12 @@ class RPCExec(object):
 
         index = params[0]
         heightstr = str(index)
-        if heightstr not in chaindb.height:
+        if heightstr not in self.chaindb.height:
             err = {"code": -2, "message": "invalid height"}
             return (None, err)
 
         heightidx = ChainDb.HeightIdx()
-        heightidx.deserialize(chaindb.height[str(index)])
+        heightidx.deserialize(self.chaindb.height[str(index)])
 
         return ("%064x" % (heightidx.blocks[0],), None)
 
@@ -183,7 +183,7 @@ class RPCRequestHandler(httpsrv.RequestHandler):
         return resp
 
     def json_response(self, resp):
-        respstr = json.dumps(resp)
+        respstr = json.dumps(resp) + "\n"
 
         self.send_response(200)
         self.send_header("Content-type", "application/json")

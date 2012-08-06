@@ -242,7 +242,8 @@ class NodeConn(asyncore.dispatcher):
                 self.handle_close()
                 return
 
-            if self.ver_send >= NOBLKS_VERSION_START and self.ver_send <= NOBLKS_VERSION_END:
+            if (self.ver_send >= NOBLKS_VERSION_START and
+                    self.ver_send <= NOBLKS_VERSION_END):
                 self.getblocks_ok = False
 
             self.remote_height = message.nStartingHeight

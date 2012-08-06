@@ -15,7 +15,8 @@ import cStringIO
 
 from bitcoin.coredefs import NETWORKS
 from bitcoin.core import CBlock
-from bitcoin.scripteval import *
+from bitcoin.serialize import ser_uint256
+from bitcoin.scripteval import VerifySignature
 
 NET_SETTINGS = {
     'mainnet': {
@@ -98,13 +99,13 @@ for height in xrange(end_height):
 
     start_time = time.time()
 
-    for tx in block.vtx:
-        if tx.is_coinbase():
+    for tx_tmp in block.vtx:
+        if tx_tmp.is_coinbase():
             continue
 
         scanned_tx += 1
 
-        if not scan_tx(tx):
+        if not scan_tx(tx_tmp):
             failures += 1
             sys.exit(1)
 
