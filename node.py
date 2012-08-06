@@ -485,6 +485,6 @@ if __name__ == '__main__':
     c = NodeConn(settings['host'], settings['port'], log, mempool, chaindb,
                  netmagic)
     s = httpsrv.Server('', settings['rpcport'], rpc.RPCRequestHandler,
-                       (mempool, chaindb, settings['rpcuser'],
+                       (log, mempool, chaindb, settings['rpcuser'],
                         settings['rpcpass']))
     asyncore.loop()
