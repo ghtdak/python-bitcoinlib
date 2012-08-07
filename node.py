@@ -108,7 +108,7 @@ class NodeConn(asyncore.dispatcher):
             self.handle_close()
 
     def handle_connect(self):
-        self.log.write("connected")
+        self.log.write(self.dstaddr + " connected")
         self.state = "connected"
         #send version msg
         #		t = msg_version()
@@ -119,7 +119,7 @@ class NodeConn(asyncore.dispatcher):
         #		self.send_message(t)
 
     def handle_close(self):
-        self.log.write("close")
+        self.log.write(self.dstaddr + " close")
         self.state = "closed"
         self.recvbuf = ""
         self.sendbuf = ""
