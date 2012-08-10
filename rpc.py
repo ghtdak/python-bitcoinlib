@@ -15,14 +15,14 @@ import ChainDb
 import bitcoin.coredefs
 
 VALID_RPCS = {
-    "getblockcount": True,
-    "getblockhash": True,
-    "getconnectioncount": True,
-    "getinfo": True,
-    "getrawmempool": True,
-    "getrawtransaction": True,
-    "help": True,
-    "stop": True,
+    "getblockcount",
+    "getblockhash",
+    "getconnectioncount",
+    "getinfo",
+    "getrawmempool",
+    "getrawtransaction",
+    "help",
+    "stop",
 }
 
 
