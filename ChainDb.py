@@ -269,61 +269,14 @@ class ChainDb(object):
 
         return True
 
-    def putoneblock(self, block, checkorphans):
-        block.calc_sha256()
-
-        if self.haveblock(block.sha256, checkorphans):
-            self.log.write("Duplicate block %064x" % (block.sha256,))
-            return False
-        if not block.is_valid():
-            self.log.write("Invalid block %064x" % (block.sha256,))
-            return False
-
-        if not self.have_prevblock(block):
-            self.orphans[block.sha256] = True
-            self.orphan_deps[block.hashPrevBlock] = block
-            self.log.write("Orphan block %064x (%d orphans)" %
-                           (block.sha256, len(self.orphan_deps)))
-            return False
-
+    def setbestchain(self, ser_hash, block, blkmeta):
         # check TX connectivity
         outpts = self.spent_outpts(block)
         if outpts is None:
             self.log.write("Unconnectable block %064x" % (block.sha256,))
             return False
 
-        top_height = self.getheight()
-        top_work = long(self.misc['total_work'], 16)
-
-        prevmeta = BlkMeta()
-        if top_height >= 0:
-            ser_prevhash = ser_uint256(block.hashPrevBlock)
-            prevmeta.deserialize(self.blkmeta[ser_prevhash])
-
-        # store raw block data
-        ser_hash = ser_uint256(block.sha256)
-        self.blocks[ser_hash] = block.serialize()
-
-        # store metadata related to this block
-        blkmeta = BlkMeta()
-        blkmeta.height = prevmeta.height + 1
-        blkmeta.work = (prevmeta.work + uint256_from_compact(block.nBits))
-        self.blkmeta[ser_hash] = blkmeta.serialize()
-
-        # store list of blocks at this height
-        heightidx = HeightIdx()
-        heightstr = str(blkmeta.height)
-        if heightstr in self.height:
-            heightidx.deserialize(self.height[heightstr])
-        heightidx.blocks.append(block.sha256)
-        self.height[heightstr] = heightidx.serialize()
-
-        # update global chain pointers
-        if (blkmeta.work <= top_work):
-            self.log.write("ChainDb: height %d (weak), block %064x" %
-                           (blkmeta.height, block.sha256))
-            return True
-
+        # update database pointers for best chain
         self.misc['total_work'] = hex(blkmeta.work)
         self.misc['height'] = str(blkmeta.height)
         self.misc['tophash'] = ser_hash
@@ -348,6 +301,62 @@ class ChainDb(object):
         # mark deps as spent
         for outpt in outpts:
             self.spend_txout(outpt[0], outpt[1])
+
+        return True
+
+    def putoneblock(self, block, checkorphans):
+        block.calc_sha256()
+
+        if self.haveblock(block.sha256, checkorphans):
+            self.log.write("Duplicate block %064x" % (block.sha256,))
+            return False
+        if not block.is_valid():
+            self.log.write("Invalid block %064x" % (block.sha256,))
+            return False
+
+        if not self.have_prevblock(block):
+            self.orphans[block.sha256] = True
+            self.orphan_deps[block.hashPrevBlock] = block
+            self.log.write("Orphan block %064x (%d orphans)" %
+                           (block.sha256, len(self.orphan_deps)))
+            return False
+
+        top_height = self.getheight()
+        top_work = long(self.misc['total_work'], 16)
+
+        # read metadata for previous block
+        prevmeta = BlkMeta()
+        if top_height >= 0:
+            ser_prevhash = ser_uint256(block.hashPrevBlock)
+            prevmeta.deserialize(self.blkmeta[ser_prevhash])
+
+        # store raw block data
+        ser_hash = ser_uint256(block.sha256)
+        self.blocks[ser_hash] = block.serialize()
+
+        # store metadata related to this block
+        blkmeta = BlkMeta()
+        blkmeta.height = prevmeta.height + 1
+        blkmeta.work = (prevmeta.work + uint256_from_compact(block.nBits))
+        self.blkmeta[ser_hash] = blkmeta.serialize()
+
+        # store list of blocks at this height
+        heightidx = HeightIdx()
+        heightstr = str(blkmeta.height)
+        if heightstr in self.height:
+            heightidx.deserialize(self.height[heightstr])
+        heightidx.blocks.append(block.sha256)
+        self.height[heightstr] = heightidx.serialize()
+
+        # if chain is not best chain, proceed no further
+        if (blkmeta.work <= top_work):
+            self.log.write("ChainDb: height %d (weak), block %064x" %
+                           (blkmeta.height, block.sha256))
+            return True
+
+        # update global chain pointers
+        if not self.setbestchain(ser_hash, block, blkmeta):
+            return False
 
         return True
 
