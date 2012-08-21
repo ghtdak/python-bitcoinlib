@@ -18,6 +18,8 @@ NOBLKS_VERSION_END = 32400
 
 MEMPOOL_GD_VERSION = 60002
 
+COIN = 100000000
+
 
 class NetMagic(object):
 
