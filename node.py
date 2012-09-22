@@ -6,9 +6,15 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
 
+import gevent
+import gevent.pywsgi
+from gevent import Greenlet
+from gevent import monkey
+monkey.patch_all()
+
+import signal
 import struct
 import socket
-import asyncore
 import binascii
 import time
 import sys
@@ -17,13 +23,12 @@ import random
 import cStringIO
 import copy
 import re
+import rpc
 from Crypto.Hash import SHA256
 
 import ChainDb
 import MemPool
 import Log
-import httpsrv
-import rpc
 from bitcoin.core import *
 from bitcoin.serialize import *
 from bitcoin.messages import *
@@ -51,7 +56,7 @@ def verbose_recvmsg(message):
     return True
 
 
-class NodeConn(asyncore.dispatcher):
+class NodeConn(Greenlet):
     messagemap = {
         "version": msg_version,
         "verack": msg_verack,
@@ -70,7 +75,7 @@ class NodeConn(asyncore.dispatcher):
 
     def __init__(self, dstaddr, dstport, log, peermgr, mempool, chaindb,
                  netmagic):
-        asyncore.dispatcher.__init__(self)
+        Greenlet.__init__(self)
         self.log = log
         self.peermgr = peermgr
         self.mempool = mempool
@@ -78,8 +83,7 @@ class NodeConn(asyncore.dispatcher):
         self.netmagic = netmagic
         self.dstaddr = dstaddr
         self.dstport = dstport
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sendbuf = ""
+        self.sock = gevent.socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recvbuf = ""
         self.ver_send = MIN_PROTO_VERSION
         self.ver_recv = MIN_PROTO_VERSION
@@ -88,8 +92,14 @@ class NodeConn(asyncore.dispatcher):
         self.last_block_rx = time.time()
         self.last_getblocks = 0
         self.remote_height = -1
-        self.state = "connecting"
+
         self.hash_continue = None
+
+        self.log.write("connecting")
+        try:
+            self.sock.connect((dstaddr, dstport))
+        except:
+            self.handle_close()
 
         #stuff version msg into sendbuf
         vt = msg_version()
@@ -101,59 +111,26 @@ class NodeConn(asyncore.dispatcher):
         vt.strSubVer = MY_SUBVERSION
         self.send_message(vt, True)
 
-        self.log.write("connecting")
-        try:
-            self.connect((dstaddr, dstport))
-        except:
-            self.handle_close()
-
-    def handle_connect(self):
+    def _run(self):
         self.log.write(self.dstaddr + " connected")
-        self.state = "connected"
-        #send version msg
-        #		t = msg_version()
-        #		t.addrTo.ip = self.dstaddr
-        #		t.addrTo.port = self.dstport
-        #		t.addrFrom.ip = "0.0.0.0"
-        #		t.addrFrom.port = 0
-        #		self.send_message(t)
+        while True:
+            try:
+                t = self.sock.recv(8192)
+                if len(t) <= 0: raise ValueError
+            except (IOError, ValueError):
+                self.handle_close()
+                return
+            self.recvbuf += t
+            self.got_data()
 
     def handle_close(self):
         self.log.write(self.dstaddr + " close")
-        self.state = "closed"
         self.recvbuf = ""
-        self.sendbuf = ""
         try:
-            self.shutdown(socket.SHUT_RDWR)
+            self.sock.shutdown(socket.SHUT_RDWR)
             self.close()
         except:
             pass
-
-    def handle_read(self):
-        try:
-            t = self.recv(8192)
-        except:
-            self.handle_close()
-            return
-        if len(t) == 0:
-            self.handle_close()
-            return
-        self.recvbuf += t
-        self.got_data()
-
-    def readable(self):
-        return True
-
-    def writable(self):
-        return (len(self.sendbuf) > 0)
-
-    def handle_write(self):
-        try:
-            sent = self.send(self.sendbuf)
-        except:
-            self.handle_close()
-            return
-        self.sendbuf = self.sendbuf[sent:]
 
     def got_data(self):
         while True:
@@ -185,9 +162,6 @@ class NodeConn(asyncore.dispatcher):
                 self.log.write("UNKNOWN COMMAND %s %s" % (command, repr(msg)))
 
     def send_message(self, message, pushbuf=False):
-        if self.state != "connected" and not pushbuf:
-            return
-
         if verbose_sendmsg(message):
             self.log.write("send %s" % repr(message))
 
@@ -204,7 +178,7 @@ class NodeConn(asyncore.dispatcher):
         tmsg += h[:4]
 
         tmsg += data
-        self.sendbuf += tmsg
+        self.sock.sendall(tmsg)
         self.last_sent = time.time()
 
     def send_getblocks(self, timecheck=True):
@@ -439,6 +413,7 @@ class PeerManager(object):
         c = NodeConn(host, port, self.log, self, self.mempool, self.chaindb,
                      self.netmagic)
         self.peers.append(c)
+        return c
 
     def new_addrs(self, addrs):
         for addr in addrs:
@@ -519,13 +494,26 @@ if __name__ == '__main__':
     if 'loadblock' in settings:
         chaindb.loadfile(settings['loadblock'])
 
+    threads = []
+
     # start HTTP server for JSON-RPC
-    s = httpsrv.Server('', settings['rpcport'], rpc.RPCRequestHandler,
-                       (log, peermgr, mempool, chaindb, settings['rpcuser'],
-                        settings['rpcpass']))
+    rpcexec = rpc.RPCExec(peermgr, mempool, chaindb, log, settings['rpcuser'],
+                          settings['rpcpass'])
+    rpcserver = gevent.pywsgi.WSGIServer(
+        ('', settings['rpcport']), rpcexec.handle_request)
+    t = gevent.Greenlet(rpcserver.serve_forever)
+    t.start()
+    threads.append(t)
 
     # connect to specified remote node
-    peermgr.add(settings['host'], settings['port'])
+    c = peermgr.add(settings['host'], settings['port'])
+    c.start()
+    threads.append(c)
 
     # program main loop
-    asyncore.loop()
+    def shutdown():
+        for t in threads:
+            t.kill()
+
+    gevent.signal(signal.SIGINT, shutdown)
+    gevent.joinall(threads)
