@@ -208,6 +208,8 @@ class NodeConn(Greenlet):
             self.send_message(gb)
 
     def got_message(self, message):
+        gevent.sleep()
+
         if self.last_sent + 30 * 60 < time.time():
             self.send_message(msg_ping(self.ver_send))
 
@@ -304,8 +306,8 @@ class NodeConn(Greenlet):
 
             self.send_message(msg)
 
-        # if we haven't seen a 'block' message in a little while,
-        # and we're still not caught up, send another getblocks
+    # if we haven't seen a 'block' message in a little while,
+    # and we're still not caught up, send another getblocks
         last_blkmsg = time.time() - self.last_block_rx
         if last_blkmsg > 5:
             self.send_getblocks()
@@ -513,18 +515,25 @@ if __name__ == '__main__':
     rpcserver = gevent.pywsgi.WSGIServer(
         ('', settings['rpcport']), rpcexec.handle_request)
     t = gevent.Greenlet(rpcserver.serve_forever)
-    t.start()
     threads.append(t)
 
     # connect to specified remote node
     c = peermgr.add(settings['host'], settings['port'])
-    c.start()
     threads.append(c)
 
     # program main loop
-    def shutdown():
+    def start(timeout=None):
         for t in threads:
-            t.kill()
+            t.start()
+        try:
+            gevent.joinall(threads, timeout=timeout, raise_error=True)
+        finally:
+            for t in threads:
+                t.kill()
+            gevent.joinall(threads)
+            log.write('Flushing database...')
+            del chaindb.db
+            chaindb.blk_write.close()
+            log.write('OK')
 
-    gevent.signal(signal.SIGINT, shutdown)
-    gevent.joinall(threads)
+    start()
