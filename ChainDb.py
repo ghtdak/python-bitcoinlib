@@ -83,12 +83,14 @@ class HeightIdx(object):
 class ChainDb(object):
 
     def __init__(self,
+                 settings,
                  datadir,
                  log,
                  mempool,
                  netmagic,
                  readonly=False,
                  fast_dbm=False):
+        self.settings = settings
         self.log = log
         self.mempool = mempool
         self.readonly = readonly
@@ -332,23 +334,37 @@ class ChainDb(object):
         return True
 
     def connect_block(self, ser_hash, block, blkmeta):
-        # check TX connectivity
+        # verify against checkpoint list
+        try:
+            chk_hash = self.netmagic.checkpoints[blkmeta.height]
+            if chk_hash != block.sha256:
+                self.log.write(
+                    "Block %064x does not match checkpoint hash %064x, height %d"
+                    % (block.sha256, chk_hash, blkmeta.height))
+                return False
+        except KeyError:
+            pass
+
+            # check TX connectivity
         outpts = self.spent_outpts(block)
         if outpts is None:
             self.log.write("Unconnectable block %064x" % (block.sha256,))
             return False
 
         # verify script signatures
-        for tx in block.vtx:
-            tx.calc_sha256()
+        if ('nosig' not in self.settings and
+            ('forcesig' in self.settings or
+             blkmeta.height > self.netmagic.checkpoint_max)):
+            for tx in block.vtx:
+                tx.calc_sha256()
 
-            if tx.is_coinbase():
-                continue
+                if tx.is_coinbase():
+                    continue
 
-            if not self.tx_signed(tx, block, False):
-                self.log.write("Invalid signature in block %064x" %
-                               (block.sha256,))
-                return False
+                if not self.tx_signed(tx, block, False):
+                    self.log.write("Invalid signature in block %064x" %
+                                   (block.sha256,))
+                    return False
 
         # update database pointers for best chain
         self.misc['total_work'] = hex(blkmeta.work)
