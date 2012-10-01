@@ -306,8 +306,8 @@ class NodeConn(Greenlet):
 
             self.send_message(msg)
 
-    # if we haven't seen a 'block' message in a little while,
-    # and we're still not caught up, send another getblocks
+        # if we haven't seen a 'block' message in a little while,
+        # and we're still not caught up, send another getblocks
         last_blkmsg = time.time() - self.last_block_rx
         if last_blkmsg > 5:
             self.send_getblocks()
