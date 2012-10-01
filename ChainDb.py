@@ -132,7 +132,7 @@ class ChainDb(object):
                 "Database magic number mismatch. Data corruption or incorrect network?")
             raise RuntimeError
 
-    def puttxidx(self, txhash, txidx):
+    def puttxidx(self, txhash, txidx, batch=None):
         ser_txhash = ser_uint256(txhash)
 
         try:
@@ -144,8 +144,9 @@ class ChainDb(object):
                    old_txidx.spentmask, txidx.blkhash))
         except KeyError:
             pass
-        self.db.Put('tx:' + ser_txhash,
-                    hex(txidx.blkhash) + ' ' + hex(txidx.spentmask))
+        batch = self.db if batch is not None else batch
+        batch.Put('tx:' + ser_txhash,
+                  hex(txidx.blkhash) + ' ' + hex(txidx.spentmask))
 
         return True
 
@@ -217,23 +218,23 @@ class ChainDb(object):
 
         return block
 
-    def spend_txout(self, txhash, n_idx):
+    def spend_txout(self, txhash, n_idx, batch=None):
         txidx = self.gettxidx(txhash)
         if txidx is None:
             return False
 
         txidx.spentmask |= (1L << n_idx)
-        self.puttxidx(txhash, txidx)
+        self.puttxidx(txhash, txidx, batch)
 
         return True
 
-    def clear_txout(self, txhash, n_idx):
+    def clear_txout(self, txhash, n_idx, batch=None):
         txidx = self.gettxidx(txhash)
         if txidx is None:
             return False
 
         txidx.spentmask &= ~(1L << n_idx)
-        self.puttxidx(txhash, txidx)
+        self.puttxidx(txhash, txidx, batch)
 
         return True
 
@@ -379,7 +380,6 @@ class ChainDb(object):
         batch.Put('misc:total_work', hex(blkmeta.work))
         batch.Put('misc:height', str(blkmeta.height))
         batch.Put('misc:tophash', ser_hash)
-        self.db.Write(batch)
 
         self.log.write("ChainDb: height %d, block %064x" % (blkmeta.height,
                                                             block.sha256))
@@ -391,7 +391,7 @@ class ChainDb(object):
                 neverseen += 1
 
             txidx = TxIdx(block.sha256)
-            if not self.puttxidx(tx.sha256, txidx):
+            if not self.puttxidx(tx.sha256, txidx, batch):
                 self.log.write("TxIndex failed %064x" % (tx.sha256,))
                 return False
 
@@ -400,8 +400,9 @@ class ChainDb(object):
 
         # mark deps as spent
         for outpt in outpts:
-            self.spend_txout(outpt[0], outpt[1])
+            self.spend_txout(outpt[0], outpt[1], batch)
 
+        self.db.Write(batch)
         return True
 
     def disconnect_block(self, block):
@@ -416,11 +417,11 @@ class ChainDb(object):
         outpts = tup[0]
 
         # mark deps as unspent
+        batch = leveldb.WriteBatch()
         for outpt in outpts:
-            self.clear_txout(outpt[0], outpt[1])
+            self.clear_txout(outpt[0], outpt[1], batch)
 
         # update tx index and memory pool
-        batch = leveldb.WriteBatch()
         for tx in block.vtx:
             tx.calc_sha256()
             ser_hash = ser_uint256(tx.sha256)
