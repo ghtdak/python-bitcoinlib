@@ -55,21 +55,6 @@ def verbose_recvmsg(message):
 
 
 class NodeConn(Greenlet):
-    messagemap = {
-        "version": msg_version,
-        "verack": msg_verack,
-        "addr": msg_addr,
-        "alert": msg_alert,
-        "inv": msg_inv,
-        "getdata": msg_getdata,
-        "getblocks": msg_getblocks,
-        "tx": msg_tx,
-        "block": msg_block,
-        "getaddr": msg_getaddr,
-        "ping": msg_ping,
-        "pong": msg_pong,
-        "mempool": msg_mempool
-    }
 
     def __init__(self, dstaddr, dstport, log, peermgr, mempool, chaindb,
                  netmagic):
@@ -151,9 +136,9 @@ class NodeConn(Greenlet):
                 raise ValueError("got bad checksum %s" % repr(self.recvbuf))
             self.recvbuf = self.recvbuf[4 + 12 + 4 + 4 + msglen:]
 
-            if command in self.messagemap:
+            if command in messagemap:
                 f = cStringIO.StringIO(msg)
-                t = self.messagemap[command](self.ver_recv)
+                t = messagemap[command](self.ver_recv)
                 t.deserialize(f)
                 self.got_message(t)
             else:
