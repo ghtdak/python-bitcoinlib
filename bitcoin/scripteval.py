@@ -139,10 +139,10 @@ def CheckMultiSig(opcode, script, stack, txTo, inIdx, hashtype):
 
 
 def dumpstack(msg, stack):
-    print "%s stacksz %d" % (msg, len(stack))
+    print("%s stacksz %d" % (msg, len(stack)))
     for i in xrange(len(stack)):
         vch = stack[i]
-        print "#%d: %s" % (i, vch.encode('hex'))
+        print("#%d: %s" % (i, vch.encode('hex')))
 
 
 ISA_UNOP = {
@@ -571,7 +571,7 @@ def EvalScript(stack, scriptIn, txTo, inIdx, hashtype):
                 stack.append("\x00")
 
         elif fExec:
-            print "Unsupported opcode", OPCODE_NAMES[sop.op]
+            #print("Unsupported opcode", OPCODE_NAMES[sop.op])
             return False
 
     return True

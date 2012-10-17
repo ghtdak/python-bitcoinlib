@@ -428,7 +428,7 @@ class PeerManager(object):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print "Usage: node.py CONFIG-FILE"
+        print("Usage: node.py CONFIG-FILE")
         sys.exit(1)
 
     f = open(sys.argv[1])
@@ -454,7 +454,7 @@ if __name__ == '__main__':
         settings['log'] = None
 
     if ('rpcuser' not in settings or 'rpcpass' not in settings):
-        print "You must set the following in config: rpcuser, rpcpass"
+        print("You must set the following in config: rpcuser, rpcpass")
         sys.exit(1)
 
     settings['port'] = int(settings['port'])
