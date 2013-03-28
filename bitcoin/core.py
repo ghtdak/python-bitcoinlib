@@ -179,7 +179,7 @@ class CTxOut(object):
         return r
 
     def is_valid(self):
-        if self.nValue < 0 or self.nValue > 21000000L * 100000000L:
+        if not MoneyRange(self.nValue):
             return False
         script = CScript()
         if not script.tokenize(self.scriptPubKey):
