@@ -19,6 +19,11 @@ NOBLKS_VERSION_END = 32400
 MEMPOOL_GD_VERSION = 60002
 
 COIN = 100000000
+MAX_MONEY = 21000000 * COIN
+
+
+def MoneyRange(nValue):
+    return 0 <= nValue <= MAX_MONEY
 
 
 class NetMagic(object):
