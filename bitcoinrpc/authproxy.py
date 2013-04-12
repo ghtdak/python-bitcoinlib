@@ -89,12 +89,10 @@ class AuthServiceProxy(object):
     def __call__(self, *args):
         self.__idcnt += 1
 
-        postdata = json.dumps({
-            'version': '1.1',
-            'method': self.__serviceName,
-            'params': args,
-            'id': self.__idcnt
-        })
+        postdata = json.dumps({'version': '1.1',
+                               'method': self.__serviceName,
+                               'params': args,
+                               'id': self.__idcnt})
         self.__conn.request('POST', self.__url.path, postdata,
                             {'Host': self.__url.hostname,
                              'User-Agent': USER_AGENT,
