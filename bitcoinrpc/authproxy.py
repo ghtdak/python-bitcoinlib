@@ -59,7 +59,7 @@ class JSONRPCException(Exception):
 
 class AuthServiceProxy(object):
 
-    def __init__(self, service_url, service_name=None):
+    def __init__(self, service_url, service_name=None, timeout=HTTP_TIMEOUT):
         self.__service_url = service_url
         self.__service_name = service_name
         self.__url = urlparse.urlparse(service_url)
@@ -72,11 +72,11 @@ class AuthServiceProxy(object):
         authpair = authpair.encode('utf8')
         self.__auth_header = "Basic %s" % base64.b64encode(authpair)
         if self.__url.scheme == 'https':
-            self.__conn = httplib.HTTPSConnection(
-                self.__url.hostname, port, None, None, False, HTTP_TIMEOUT)
+            self.__conn = httplib.HTTPSConnection(self.__url.hostname, port,
+                                                  None, None, False, timeout)
         else:
             self.__conn = httplib.HTTPConnection(self.__url.hostname, port,
-                                                 False, HTTP_TIMEOUT)
+                                                 False, timeout)
 
     def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
