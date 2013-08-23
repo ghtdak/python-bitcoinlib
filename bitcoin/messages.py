@@ -167,7 +167,7 @@ class msg_getblocks(object):
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.locator = CBlockLocator()
-        self.hashstop = 0L
+        self.hashstop = 0
 
     def deserialize(self, f):
         self.locator = CBlockLocator()
@@ -191,7 +191,7 @@ class msg_getheaders(object):
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
         self.locator = CBlockLocator()
-        self.hashstop = 0L
+        self.hashstop = 0
 
     def deserialize(self, f):
         self.locator = CBlockLocator()
@@ -283,7 +283,7 @@ class msg_getaddr(object):
 class msg_ping(object):
     command = b"ping"
 
-    def __init__(self, protover=PROTO_VERSION, nonce=0L):
+    def __init__(self, protover=PROTO_VERSION, nonce=0):
         self.protover = protover
         self.nonce = nonce
 
@@ -304,7 +304,7 @@ class msg_ping(object):
 class msg_pong(object):
     command = b"pong"
 
-    def __init__(self, protover=PROTO_VERSION, nonce=0L):
+    def __init__(self, protover=PROTO_VERSION, nonce=0):
         self.protover = protover
         self.nonce = nonce
 

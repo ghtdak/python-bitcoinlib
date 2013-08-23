@@ -29,7 +29,7 @@ def bn2bin(v):
 
 
 def bin2bn(s):
-    l = 0L
+    l = 0
     for ch in s:
         l = (l << 8) | ch
     return l
@@ -66,7 +66,7 @@ def mpi2bn(s):
     if len(s) != (v_len + 4):
         return None
     if v_len == 0:
-        return 0L
+        return 0
 
     v_str = bytearray(s[4:])
     neg = False

@@ -55,7 +55,7 @@ class CInv(object):
 
     def __init__(self):
         self.type = 0
-        self.hash = 0L
+        self.hash = 0
 
     def deserialize(self, f):
         self.type = struct.unpack(b"<i", f.read(4))[0]
