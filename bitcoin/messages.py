@@ -5,6 +5,8 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import struct
 import time
 import random
@@ -17,7 +19,7 @@ MSG_BLOCK = 2
 
 
 class msg_version(object):
-    command = "version"
+    command = b"version"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = MIN_PROTO_VERSION
@@ -27,24 +29,24 @@ class msg_version(object):
         self.addrTo = CAddress(MIN_PROTO_VERSION)
         self.addrFrom = CAddress(MIN_PROTO_VERSION)
         self.nNonce = random.getrandbits(64)
-        self.strSubVer = '/python-bitcoin-0.0.1/'
+        self.strSubVer = b'/python-bitcoin-0.0.1/'
         self.nStartingHeight = -1
 
     def deserialize(self, f):
-        self.nVersion = struct.unpack("<i", f.read(4))[0]
+        self.nVersion = struct.unpack(b"<i", f.read(4))[0]
         if self.nVersion == 10300:
             self.nVersion = 300
-        self.nServices = struct.unpack("<Q", f.read(8))[0]
-        self.nTime = struct.unpack("<q", f.read(8))[0]
+        self.nServices = struct.unpack(b"<Q", f.read(8))[0]
+        self.nTime = struct.unpack(b"<q", f.read(8))[0]
         self.addrTo = CAddress(MIN_PROTO_VERSION)
         self.addrTo.deserialize(f)
         if self.nVersion >= 106:
             self.addrFrom = CAddress(MIN_PROTO_VERSION)
             self.addrFrom.deserialize(f)
-            self.nNonce = struct.unpack("<Q", f.read(8))[0]
+            self.nNonce = struct.unpack(b"<Q", f.read(8))[0]
             self.strSubVer = deser_string(f)
             if self.nVersion >= 209:
-                self.nStartingHeight = struct.unpack("<i", f.read(4))[0]
+                self.nStartingHeight = struct.unpack(b"<i", f.read(4))[0]
             else:
                 self.nStartingHeight = None
         else:
@@ -54,15 +56,15 @@ class msg_version(object):
             self.nStartingHeight = None
 
     def serialize(self):
-        r = ""
-        r += struct.pack("<i", self.nVersion)
-        r += struct.pack("<Q", self.nServices)
-        r += struct.pack("<q", self.nTime)
+        r = b""
+        r += struct.pack(b"<i", self.nVersion)
+        r += struct.pack(b"<Q", self.nServices)
+        r += struct.pack(b"<q", self.nTime)
         r += self.addrTo.serialize()
         r += self.addrFrom.serialize()
-        r += struct.pack("<Q", self.nNonce)
+        r += struct.pack(b"<Q", self.nNonce)
         r += ser_string(self.strSubVer)
-        r += struct.pack("<i", self.nStartingHeight)
+        r += struct.pack(b"<i", self.nStartingHeight)
         return r
 
     def __repr__(self):
@@ -73,7 +75,7 @@ class msg_version(object):
 
 
 class msg_verack(object):
-    command = "verack"
+    command = b"verack"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -82,14 +84,14 @@ class msg_verack(object):
         pass
 
     def serialize(self):
-        return ""
+        return b""
 
     def __repr__(self):
         return "msg_verack()"
 
 
 class msg_addr(object):
-    command = "addr"
+    command = b"addr"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -106,7 +108,7 @@ class msg_addr(object):
 
 
 class msg_alert(object):
-    command = "alert"
+    command = b"alert"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -117,7 +119,7 @@ class msg_alert(object):
         self.alert.deserialize(f)
 
     def serialize(self):
-        r = ""
+        r = b""
         r += self.alert.serialize()
         return r
 
@@ -126,7 +128,7 @@ class msg_alert(object):
 
 
 class msg_inv(object):
-    command = "inv"
+    command = b"inv"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -143,7 +145,7 @@ class msg_inv(object):
 
 
 class msg_getdata(object):
-    command = "getdata"
+    command = b"getdata"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -160,7 +162,7 @@ class msg_getdata(object):
 
 
 class msg_getblocks(object):
-    command = "getblocks"
+    command = b"getblocks"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -173,7 +175,7 @@ class msg_getblocks(object):
         self.hashstop = deser_uint256(f)
 
     def serialize(self):
-        r = ""
+        r = b""
         r += self.locator.serialize()
         r += ser_uint256(self.hashstop)
         return r
@@ -184,7 +186,7 @@ class msg_getblocks(object):
 
 
 class msg_getheaders(object):
-    command = "getheaders"
+    command = b"getheaders"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -197,7 +199,7 @@ class msg_getheaders(object):
         self.hashstop = deser_uint256(f)
 
     def serialize(self):
-        r = ""
+        r = b""
         r += self.locator.serialize()
         r += ser_uint256(self.hashstop)
         return r
@@ -208,7 +210,7 @@ class msg_getheaders(object):
 
 
 class msg_headers(object):
-    command = "headers"
+    command = b"headers"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -225,7 +227,7 @@ class msg_headers(object):
 
 
 class msg_tx(object):
-    command = "tx"
+    command = b"tx"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -242,7 +244,7 @@ class msg_tx(object):
 
 
 class msg_block(object):
-    command = "block"
+    command = b"block"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -259,7 +261,7 @@ class msg_block(object):
 
 
 class msg_getaddr(object):
-    command = "getaddr"
+    command = b"getaddr"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -268,7 +270,7 @@ class msg_getaddr(object):
         pass
 
     def serialize(self):
-        return ""
+        return b""
 
     def __repr__(self):
         return "msg_getaddr()"
@@ -279,7 +281,7 @@ class msg_getaddr(object):
 
 
 class msg_ping(object):
-    command = "ping"
+    command = b"ping"
 
     def __init__(self, protover=PROTO_VERSION, nonce=0L):
         self.protover = protover
@@ -287,12 +289,12 @@ class msg_ping(object):
 
     def deserialize(self, f):
         if self.protover > BIP0031_VERSION:
-            self.nonce = struct.unpack("<Q", f.read(8))[0]
+            self.nonce = struct.unpack(b"<Q", f.read(8))[0]
 
     def serialize(self):
-        r = ""
+        r = b""
         if self.protover > BIP0031_VERSION:
-            r += struct.pack("<Q", self.nonce)
+            r += struct.pack(b"<Q", self.nonce)
         return r
 
     def __repr__(self):
@@ -300,18 +302,18 @@ class msg_ping(object):
 
 
 class msg_pong(object):
-    command = "pong"
+    command = b"pong"
 
     def __init__(self, protover=PROTO_VERSION, nonce=0L):
         self.protover = protover
         self.nonce = nonce
 
     def deserialize(self, f):
-        self.nonce = struct.unpack("<Q", f.read(8))[0]
+        self.nonce = struct.unpack(b"<Q", f.read(8))[0]
 
     def serialize(self):
-        r = ""
-        r += struct.pack("<Q", self.nonce)
+        r = b""
+        r += struct.pack(b"<Q", self.nonce)
         return r
 
     def __repr__(self):
@@ -319,7 +321,7 @@ class msg_pong(object):
 
 
 class msg_mempool(object):
-    command = "mempool"
+    command = b"mempool"
 
     def __init__(self, protover=PROTO_VERSION):
         self.protover = protover
@@ -328,7 +330,7 @@ class msg_mempool(object):
         pass
 
     def serialize(self):
-        return ""
+        return b""
 
     def __repr__(self):
         return "msg_mempool()"
@@ -368,8 +370,8 @@ def message_read(netmagic, f):
         return
 
     # remaining header fields: command, msg length, checksum
-    command = recvbuf[4:4 + 12].split("\x00", 1)[0]
-    msglen = struct.unpack("<i", recvbuf[4 + 12:4 + 12 + 4])[0]
+    command = recvbuf[4:4 + 12].split(b"\x00", 1)[0]
+    msglen = struct.unpack(b"<i", recvbuf[4 + 12:4 + 12 + 4])[0]
     checksum = recvbuf[4 + 12 + 4:4 + 12 + 4 + 4]
 
     # read message body
@@ -399,8 +401,8 @@ def message_to_str(netmagic, message):
     data = message.serialize()
     tmsg = netmagic.msg_start
     tmsg += command
-    tmsg += "\x00" * (12 - len(command))
-    tmsg += struct.pack("<I", len(data))
+    tmsg += b"\x00" * (12 - len(command))
+    tmsg += struct.pack(b"<I", len(data))
 
     # add checksum
     th = hashlib.sha256(data).digest()
