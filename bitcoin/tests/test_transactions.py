@@ -8,7 +8,7 @@ import os
 
 from binascii import unhexlify
 
-from bitcoin.core import COutPoint, CTxIn, CTxOut, CTransaction, _x
+from bitcoin.core import COutPoint, CTxIn, CTxOut, CTransaction, x
 
 
 class Test_COutPoint(unittest.TestCase):
@@ -28,9 +28,9 @@ class Test_COutPoint(unittest.TestCase):
         T(COutPoint(), 'COutPoint()')
         T(
             COutPoint(
-                _x('4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'),
+                x('4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'),
                 0),
-            "COutPoint(_x('4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'), 0)")
+            "COutPoint(x('4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'), 0)")
 
 
 class Test_CTxIn(unittest.TestCase):
