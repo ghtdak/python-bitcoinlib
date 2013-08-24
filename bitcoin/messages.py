@@ -172,12 +172,12 @@ class msg_getblocks(object):
     def deserialize(self, f):
         self.locator = CBlockLocator()
         self.locator.deserialize(f)
-        self.hashstop = deser_uint256(f)
+        self.hashstop = f.read(32)
 
     def serialize(self):
         r = b""
         r += self.locator.serialize()
-        r += ser_uint256(self.hashstop)
+        r += self.hashstop
         return r
 
     def __repr__(self):
@@ -196,12 +196,12 @@ class msg_getheaders(object):
     def deserialize(self, f):
         self.locator = CBlockLocator()
         self.locator.deserialize(f)
-        self.hashstop = deser_uint256(f)
+        self.hashstop = f.read(32)
 
     def serialize(self):
         r = b""
         r += self.locator.serialize()
-        r += ser_uint256(self.hashstop)
+        r += self.hashstop
         return r
 
     def __repr__(self):

@@ -38,38 +38,6 @@ def ser_string(s):
     return bchr(255) + struct.pack(b"<Q", len(s)) + s
 
 
-def deser_uint256(f):
-    r = 0
-    for i in range(8):
-        t = struct.unpack(b"<I", f.read(4))[0]
-        r += t << (i * 32)
-    return r
-
-
-def ser_uint256(u):
-    rs = b""
-    for i in range(8):
-        rs += struct.pack(b"<I", u & 0xFFFFFFFF)
-        u >>= 32
-    return rs
-
-
-def ser_uint160(u):
-    rs = b""
-    for i in range(5):
-        rs += struct.pack(b"<I", u & 0xFFFFFFFF)
-        u >>= 32
-    return rs
-
-
-def uint160_from_str(s):
-    r = 0
-    t = struct.unpack(b"<IIIII", s[:20])
-    for i in range(5):
-        r += t[i] << (i * 32)
-    return r
-
-
 def uint256_from_str(s):
     r = 0
     t = struct.unpack(b"<IIIIIIII", s[:32])
@@ -133,7 +101,7 @@ def deser_uint256_vector(f):
         nit = struct.unpack(b"<Q", f.read(8))[0]
     r = []
     for i in range(nit):
-        t = deser_uint256(f)
+        t = f.read(32)
         r.append(t)
     return r
 
@@ -149,7 +117,7 @@ def ser_uint256_vector(l):
     else:
         r = bchr(255) + struct.pack(b"<Q", len(l))
     for i in l:
-        r += ser_uint256(i)
+        r += i
     return r
 
 
@@ -163,7 +131,7 @@ def deser_string_vector(f):
         nit = struct.unpack(b"<Q", f.read(8))[0]
     r = []
     for i in range(nit):
-        t = deser_string(f)
+        t = f.read(32)
         r.append(t)
     return r
 
@@ -214,10 +182,10 @@ def ser_int_vector(l):
 
 
 def Hash(s):
-    return uint256_from_str(hashlib.sha256(hashlib.sha256(s).digest()).digest())
+    return hashlib.sha256(hashlib.sha256(s).digest()).digest()
 
 
 def Hash160(s):
     h = hashlib.new('ripemd160')
     h.update(hashlib.sha256(s).digest())
-    return uint160_from_str(h.digest())
+    return h.digest()

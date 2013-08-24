@@ -59,12 +59,12 @@ class CInv(object):
 
     def deserialize(self, f):
         self.type = struct.unpack(b"<i", f.read(4))[0]
-        self.hash = deser_uint256(f)
+        self.hash = f.read(32)
 
     def serialize(self):
         r = b""
         r += struct.pack(b"<i", self.type)
-        r += ser_uint256(self.hash)
+        r += self.hash
         return r
 
     def __repr__(self):
@@ -99,12 +99,12 @@ class COutPoint(object):
         self.n = 0
 
     def deserialize(self, f):
-        self.hash = deser_uint256(f)
+        self.hash = f.read(32)
         self.n = struct.unpack(b"<I", f.read(4))[0]
 
     def serialize(self):
         r = b""
-        r += ser_uint256(self.hash)
+        r += self.hash
         r += struct.pack(b"<I", self.n)
         return r
 
@@ -288,8 +288,8 @@ class CBlock(object):
 
     def deserialize(self, f):
         self.nVersion = struct.unpack(b"<i", f.read(4))[0]
-        self.hashPrevBlock = deser_uint256(f)
-        self.hashMerkleRoot = deser_uint256(f)
+        self.hashPrevBlock = f.read(32)
+        self.hashMerkleRoot = f.read(32)
         self.nTime = struct.unpack(b"<I", f.read(4))[0]
         self.nBits = struct.unpack(b"<I", f.read(4))[0]
         self.nNonce = struct.unpack(b"<I", f.read(4))[0]
@@ -298,8 +298,8 @@ class CBlock(object):
     def serialize_hdr(self):
         r = b""
         r += struct.pack(b"<i", self.nVersion)
-        r += ser_uint256(self.hashPrevBlock)
-        r += ser_uint256(self.hashMerkleRoot)
+        r += self.hashPrevBlock
+        r += self.hashMerkleRoot
         r += struct.pack(b"<I", self.nTime)
         r += struct.pack(b"<I", self.nBits)
         r += struct.pack(b"<I", self.nNonce)
@@ -320,7 +320,7 @@ class CBlock(object):
             if not tx.is_valid():
                 return None
             tx.calc_sha256()
-            hashes.append(ser_uint256(tx.sha256))
+            hashes.append(tx.sha256)
         while len(hashes) > 1:
             newhashes = []
             for i in range(0, len(hashes), 2):
