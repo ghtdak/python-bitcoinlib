@@ -117,7 +117,7 @@ class CBlockLocator(object):
                                                         repr(self.vHave))
 
 
-class COutPoint(object):
+class COutPoint(Serializable):
     """The combination of a transaction hash and an index n into its vout"""
     __slots__ = ['hash', 'n']
 
@@ -132,15 +132,16 @@ class COutPoint(object):
                 'COutPoint: n must be in range 0x0 to 0xffffffff; got %x' % n)
         self.n = n
 
-    def deserialize(self, f):
-        self.hash = f.read(32)
-        self.n = struct.unpack(b"<I", f.read(4))[0]
+    @classmethod
+    def stream_deserialize(cls, f):
+        hash = f.read(32)
+        n = struct.unpack(b"<I", f.read(4))[0]
+        return cls(hash, n)
 
-    def serialize(self):
-        r = b""
-        r += self.hash
-        r += struct.pack(b"<I", self.n)
-        return r
+    def stream_serialize(self, f):
+        assert len(self.hash) == 32
+        f.write(self.hash)
+        f.write(struct.pack(b"<I", self.n))
 
     def is_null(self):
         return ((self.hash == b'\x00' * 32) and (self.n == 0xffffffff))
@@ -152,7 +153,7 @@ class COutPoint(object):
             return 'COutPoint(_x(%r), %i)' % (hex_str(self.hash), self.n)
 
 
-class CTxIn(object):
+class CTxIn(Serializable):
     """An input of a transaction
 
     Contains the location of the previous transaction's output that it claims,
@@ -171,18 +172,17 @@ class CTxIn(object):
                 % nSequence)
         self.nSequence = nSequence
 
-    def deserialize(self, f):
-        self.prevout = COutPoint()
-        self.prevout.deserialize(f)
-        self.scriptSig = deser_string(f)
-        self.nSequence = struct.unpack(b"<I", f.read(4))[0]
+    @classmethod
+    def stream_deserialize(cls, f):
+        prevout = COutPoint.stream_deserialize(f)
+        scriptSig = CScript(stream_deser_bytes(f))
+        nSequence = struct.unpack(b"<I", f.read(4))[0]
+        return cls(prevout, scriptSig, nSequence)
 
-    def serialize(self):
-        r = b""
-        r += self.prevout.serialize()
-        r += ser_string(self.scriptSig)
-        r += struct.pack(b"<I", self.nSequence)
-        return r
+    def stream_serialize(self, f):
+        self.prevout.stream_serialize(f)
+        stream_ser_bytes(self.scriptSig, f)
+        f.write(struct.pack(b"<I", self.nSequence))
 
     def is_final(self):
         return (self.nSequence == 0xffffffff)
@@ -192,26 +192,27 @@ class CTxIn(object):
                                         repr(self.scriptSig), self.nSequence)
 
 
-class CTxOut(object):
+class CTxOut(Serializable):
     """An output of a transaction
 
     Contains the public key that the next input must be able to sign with to
     claim it.
     """
+    __slots__ = ['nValue', 'scriptPubKey']
 
     def __init__(self, nValue=-1, scriptPubKey=CScript()):
         self.nValue = nValue
         self.scriptPubKey = scriptPubKey
 
-    def deserialize(self, f):
-        self.nValue = struct.unpack(b"<q", f.read(8))[0]
-        self.scriptPubKey = deser_string(f)
+    @classmethod
+    def stream_deserialize(cls, f):
+        nValue = struct.unpack(b"<q", f.read(8))[0]
+        scriptPubKey = CScript(stream_deser_bytes(f))
+        return cls(nValue, scriptPubKey)
 
-    def serialize(self):
-        r = b""
-        r += struct.pack(b"<q", self.nValue)
-        r += ser_string(self.scriptPubKey)
-        return r
+    def stream_serialize(self, f):
+        f.write(struct.pack(b"<q", self.nValue))
+        stream_ser_bytes(self.scriptPubKey, f)
 
     def is_valid(self):
         if not MoneyRange(self.nValue):
@@ -228,7 +229,7 @@ class CTxOut(object):
             return "CTxOut(%d, %r)" % (self.nValue, self.scriptPubKey)
 
 
-class CTransaction(object):
+class CTransaction(Serializable):
     """A transaction"""
     __slots__ = ['nVersion', 'vin', 'vout', 'nLockTime']
 
@@ -246,19 +247,19 @@ class CTransaction(object):
                 % nLockTime)
         self.nLockTime = nLockTime
 
-    def deserialize(self, f):
-        self.nVersion = struct.unpack(b"<i", f.read(4))[0]
-        self.vin = deser_vector(f, CTxIn)
-        self.vout = deser_vector(f, CTxOut)
-        self.nLockTime = struct.unpack(b"<I", f.read(4))[0]
+    @classmethod
+    def stream_deserialize(cls, f):
+        nVersion = struct.unpack(b"<i", f.read(4))[0]
+        vin = stream_deser_vector(f, CTxIn)
+        vout = stream_deser_vector(f, CTxOut)
+        nLockTime = struct.unpack(b"<I", f.read(4))[0]
+        return cls(vin, vout, nLockTime, nVersion)
 
-    def serialize(self):
-        r = b""
-        r += struct.pack(b"<i", self.nVersion)
-        r += ser_vector(self.vin)
-        r += ser_vector(self.vout)
-        r += struct.pack(b"<I", self.nLockTime)
-        return r
+    def stream_serialize(self, f):
+        f.write(struct.pack(b"<i", self.nVersion))
+        stream_ser_vector(self.vin, f)
+        stream_ser_vector(self.vout, f)
+        f.write(struct.pack(b"<I", self.nLockTime))
 
     def is_coinbase(self):
         return len(self.vin) == 1 and self.vin[0].prevout.is_null()
