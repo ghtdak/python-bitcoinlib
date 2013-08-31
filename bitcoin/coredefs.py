@@ -43,7 +43,7 @@ class NetMagic(object):
 
 NETWORKS = {
     'mainnet': NetMagic(
-        "\xf9\xbe\xb4\xd9",
+        b"\xf9\xbe\xb4\xd9",
         0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f, {
             0:
             0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f,
@@ -67,7 +67,7 @@ NETWORKS = {
             0x00000000000001b4f4b433e81ee46494af945cf96014816a4e2370f11b23df4e,
         }),
     'testnet3': NetMagic(
-        "\x0b\x11\x09\x07",
+        b"\x0b\x11\x09\x07",
         0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943, {
             0:
             0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943,
