@@ -10,7 +10,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import struct
 import socket
 import binascii
-import time
 import hashlib
 import bitcoin.base58 as base58
 import bitcoin.script as script
