@@ -49,10 +49,9 @@ try:
 except ImportError:
     import urlparse
 
-from bitcoin.core import x, b2x, CBlock, CTransaction, COutPoint, CTxOut
+from bitcoin.core import x, b2x, CBitcoinAddress, CBlock, CTransaction, COutPoint, CTxOut
 from bitcoin.script import CScript
 from bitcoin.coredefs import COIN
-from bitcoin.base58 import CBitcoinAddress
 
 USER_AGENT = "AuthServiceProxy/0.1"
 
@@ -237,7 +236,7 @@ class Proxy(RawProxy):
     def getaccountaddress(self, account=None):
         """Return the current Bitcoin address for receiving payments to this account."""
         r = self._call('getaccountaddress', account)
-        return CBitcoinAddress.from_str(r)
+        return CBitcoinAddress(r)
 
     def getblock(self, block_hash):
         """Get block <block_hash>
@@ -287,7 +286,7 @@ class Proxy(RawProxy):
         else:
             r = self._call('getnewaddress')
 
-        return CBitcoinAddress.from_str(r)
+        return CBitcoinAddress(r)
 
     def getrawtransaction(self, txid, verbose=False):
         """Return transaction with hash txid
@@ -361,7 +360,7 @@ class Proxy(RawProxy):
             del unspent['txid']
             del unspent['vout']
 
-            unspent['address'] = CBitcoinAddress.from_str(unspent['address'])
+            unspent['address'] = CBitcoinAddress(unspent['address'])
             unspent['scriptPubKey'] = CScript(unhexlify(unspent[
                 'scriptPubKey']))
             unspent['amount'] = int(unspent['amount'] * COIN)
@@ -400,6 +399,6 @@ class Proxy(RawProxy):
     def validateaddress(self, address):
         """Return information about an address"""
         r = self._call('validateaddress', str(address))
-        r['address'] = CBitcoinAddress.from_str(r['address'])
+        r['address'] = CBitcoinAddress(r['address'])
         r['pubkey'] = unhexlify(r['pubkey'])
         return r
