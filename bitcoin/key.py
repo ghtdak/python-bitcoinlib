@@ -27,10 +27,10 @@ ssl.EC_KEY_new_by_curve_name.errcheck = check_result
 
 
 class CKey:
+    POINT_CONVERSION_COMPRESSED = 2
+    POINT_CONVERSION_UNCOMPRESSED = 4
 
     def __init__(self):
-        self.POINT_CONVERSION_COMPRESSED = 2
-        self.POINT_CONVERSION_UNCOMPRESSED = 4
         self.k = ssl.EC_KEY_new_by_curve_name(NID_secp256k1)
 
     def __del__(self):
