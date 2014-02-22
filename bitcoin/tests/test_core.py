@@ -49,10 +49,6 @@ class Test_CBlockHeader(unittest.TestCase):
         genesis2 = CBlockHeader.deserialize(serialized)
         self.assertEqual(genesis, genesis2)
 
-    def test_is_pow_valid(self):
-        # FIXME: implement
-        pass
-
     def test_calc_difficulty(self):
 
         def T(nbits, expected):
