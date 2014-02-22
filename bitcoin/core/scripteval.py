@@ -4,6 +4,12 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
+"""Script evaluation
+
+Be warned that there are highly likely to be consensus bugs in this code; it is
+unlikely to match Satoshi Bitcoin exactly. Think carefully before using this
+module.
+"""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
@@ -13,13 +19,13 @@ if sys.version > '3':
     long = int
     bord = lambda x: x
 
-import hashlib
 import copy
-from bitcoin.serialize import Hash, Hash160
-from bitcoin.script import *
-from bitcoin.core import CTxOut, CTransaction
-from bitcoin.key import CKey
-from bitcoin.bignum import bn2vch, vch2bn
+import hashlib
+
+import bitcoin.core.serialize
+import bitcoin.core.key
+
+from bitcoin.core.script import *
 
 nMaxNumSize = 4
 MAX_SCRIPT_SIZE = 10000
@@ -52,7 +58,7 @@ def MissingOpArgumentsError(opcode, stack, n):
 
 
 def CastToBigNum(s):
-    v = vch2bn(s)
+    v = bitcoin.core.bignum.vch2bn(s)
     if len(s) > nMaxNumSize:
         raise EvalScriptError('CastToBigNum(): overflow')
     return v
@@ -69,60 +75,6 @@ def CastToBool(s):
     return False
 
 
-def RawSignatureHash(script, txTo, inIdx, hashtype):
-    HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-
-    if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin)))
-    txtmp = copy.deepcopy(txTo)
-
-    for txin in txtmp.vin:
-        txin.scriptSig = b''
-    txtmp.vin[inIdx].scriptSig = script
-
-    if (hashtype & 0x1f) == SIGHASH_NONE:
-        txtmp.vout = []
-
-        for i in range(len(txtmp.vin)):
-            if i != inIdx:
-                txtmp.vin[i].nSequence = 0
-
-    elif (hashtype & 0x1f) == SIGHASH_SINGLE:
-        outIdx = inIdx
-        if outIdx >= len(txtmp.vout):
-            return (HASH_ONE, "outIdx %d out of range (%d)" %
-                    (outIdx, len(txtmp.vout)))
-
-        tmp = txtmp.vout[outIdx]
-        txtmp.vout = []
-        for i in range(outIdx):
-            txtmp.vout.append(CTxOut())
-        txtmp.vout.append(tmp)
-
-        for i in range(len(txtmp.vin)):
-            if i != inIdx:
-                txtmp.vin[i].nSequence = 0
-
-    if hashtype & SIGHASH_ANYONECANPAY:
-        tmp = txtmp.vin[inIdx]
-        txtmp.vin = []
-        txtmp.vin.append(tmp)
-
-    s = txtmp.serialize()
-    s += struct.pack(b"<I", hashtype)
-
-    hash = Hash(s)
-
-    return (hash, None)
-
-
-def SignatureHash(script, txTo, inIdx, hashtype):
-    (h, err) = RawSignatureHash(script, txTo, inIdx, hashtype)
-    if err is not None:
-        raise ValueError(err)
-    return h
-
-
 def _FindAndDelete(script, sig):
     # Since the Satoshi CScript.FindAndDelete() works on a binary level we have
     # to do that too. Notably FindAndDelete() will not delete if the PUSHDATA
@@ -134,7 +86,7 @@ def _FindAndDelete(script, sig):
 
 
 def CheckSig(sig, pubkey, script, txTo, inIdx, hashtype):
-    key = CKey()
+    key = bitcoin.core.key.CKey()
     key.set_pubkey(pubkey)
 
     if len(sig) == 0:
@@ -254,7 +206,7 @@ def UnaryOp(opcode, stack):
     else:
         return False
 
-    stack.append(bn2vch(bn))
+    stack.append(bitcoin.core.bignum.bn2vch(bn))
 
     return True
 
@@ -331,7 +283,7 @@ def BinOp(opcode, stack):
         assert False  # unknown binop opcode, shouldn't happen
         return False  # Python strips out assertions with -O flag...
 
-    stack.append(bn2vch(bn))
+    stack.append(bitcoin.core.bignum.bn2vch(bn))
 
     if opcode == OP_NUMEQUALVERIFY:
         if CastToBool(stack[-1]):
@@ -342,7 +294,7 @@ def BinOp(opcode, stack):
     return True
 
 
-def CheckExec(vfExec):
+def _CheckExec(vfExec):
     for b in vfExec:
         if not b:
             return False
@@ -359,7 +311,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, hashtype, flags=()):
     pbegincodehash = 0
     nOpCount = 0
     for (sop, sop_data, sop_pc) in scriptIn.raw_iter():
-        fExec = CheckExec(vfExec)
+        fExec = _CheckExec(vfExec)
 
         if sop in disabled_opcodes:
             raise EvalScriptError('opcode %s is disabled' % OPCODE_NAMES[sop])
@@ -386,7 +338,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, hashtype, flags=()):
         elif fExec and (sop == OP_1NEGATE or ((sop >= OP_1) and
                                               (sop <= OP_16))):
             v = sop - (OP_1 - 1)
-            stack.append(bn2vch(v))
+            stack.append(bitcoin.core.bignum.bn2vch(v))
 
         elif fExec and sop in ISA_BINOP:
             if not BinOp(sop, stack):
@@ -475,7 +427,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, hashtype, flags=()):
 
         elif fExec and sop == OP_DEPTH:
             bn = len(stack)
-            stack.append(bn2vch(bn))
+            stack.append(bitcoin.core.bignum.bn2vch(bn))
 
         elif fExec and sop == OP_DROP:
             check_args(1)
@@ -521,11 +473,11 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, hashtype, flags=()):
 
         elif fExec and sop == OP_HASH160:
             check_args(1)
-            stack.append(Hash160(stack.pop()))
+            stack.append(bitcoin.core.serialize.Hash160(stack.pop()))
 
         elif fExec and sop == OP_HASH256:
             check_args(1)
-            stack.append(Hash(stack.pop()))
+            stack.append(bitcoin.core.serialize.Hash(stack.pop()))
 
         elif sop == OP_IF or sop == OP_NOTIF:
             val = False
@@ -590,7 +542,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, hashtype, flags=()):
         elif fExec and sop == OP_SIZE:
             check_args(1)
             bn = len(stack[-1])
-            stack.append(bn2vch(bn))
+            stack.append(bitcoin.core.bignum.bn2vch(bn))
 
         elif fExec and sop == OP_SHA1:
             check_args(1)

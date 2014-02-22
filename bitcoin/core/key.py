@@ -15,7 +15,7 @@ NID_secp256k1 = 714  # from openssl/obj_mac.h
 
 
 # Thx to Sam Devlin for the ctypes magic 64-bit fix.
-def check_result(val, func, args):
+def _check_result(val, func, args):
     if val == 0:
         raise ValueError
     else:
@@ -23,7 +23,7 @@ def check_result(val, func, args):
 
 
 ssl.EC_KEY_new_by_curve_name.restype = ctypes.c_void_p
-ssl.EC_KEY_new_by_curve_name.errcheck = check_result
+ssl.EC_KEY_new_by_curve_name.errcheck = _check_result
 
 
 class CKey:

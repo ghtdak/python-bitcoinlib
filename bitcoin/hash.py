@@ -8,9 +8,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import struct
-from bitcoin.serialize import *
-from bitcoin.coredefs import *
-from bitcoin.script import CScript
 
 
 def ROTL32(x, r):

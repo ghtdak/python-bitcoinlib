@@ -10,13 +10,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import struct
 import sys
 import math
-from bitcoin.serialize import *
-from bitcoin.coredefs import *
-from bitcoin.core import *
-from bitcoin.hash import MurmurHash3
+
+import bitcoin.core
+import bitcoin.core.serialize
+import bitcoin.hash
 
 
-class CBloomFilter(Serializable):
+class CBloomFilter(bitcoin.core.serialize.Serializable):
     # 20,000 items with fp rate < 0.1% or 10,000 items and <0.0001%
     MAX_BLOOM_FILTER_SIZE = 36000
     MAX_HASH_FUNCS = 50
@@ -53,7 +53,7 @@ class CBloomFilter(Serializable):
         self.nFlags = nFlags
 
     def bloom_hash(self, nHashNum, vDataToHash):
-        return MurmurHash3(
+        return bitcoin.hash.MurmurHash3(
             ((nHashNum * 0xFBA4C795) + self.nTweak) & 0xFFFFFFFF,
             vDataToHash) % (len(self.vData) * 8)
 
@@ -64,7 +64,7 @@ class CBloomFilter(Serializable):
 
         elem may be a COutPoint or bytes
         """
-        if isinstance(elem, COutPoint):
+        if isinstance(elem, bitcoin.core.COutPoint):
             elem = elem.serialize()
 
         if len(self.vData) == 1 and self.vData[0] == 0xff:
@@ -80,7 +80,7 @@ class CBloomFilter(Serializable):
 
         elem may be a COutPoint or bytes
         """
-        if isinstance(elem, COutPoint):
+        if isinstance(elem, bitcoin.core.COutPoint):
             elem = elem.serialize()
 
         if len(self.vData) == 1 and self.vData[0] == 0xff:
@@ -104,7 +104,7 @@ class CBloomFilter(Serializable):
 
     @classmethod
     def stream_deserialize(cls, f):
-        vData = BytesSerializer.stream_deserialize(f)
+        vData = bitcoin.core.serialize.BytesSerializer.stream_deserialize(f)
         (nHashFuncs, nTweak,
          nFlags) = self.__struct.unpack(_ser_read(f, self.__struct.size))
         self = cls()
@@ -116,8 +116,10 @@ class CBloomFilter(Serializable):
 
     def stream_serialize(self, f):
         if sys.version > '3':
-            BytesSerializer.stream_serialize(self.vData, f)
+            bitcoin.core.serialize.BytesSerializer.stream_serialize(self.vData,
+                                                                    f)
         else:
             # 2.7 has problems with f.write(bytearray())
-            BytesSerializer.stream_serialize(bytes(self.vData), f)
+            bitcoin.core.serialize.BytesSerializer.stream_serialize(
+                bytes(self.vData), f)
         f.write(self.__struct.pack(self.nHashFuncs, self.nTweak, self.nFlags))
