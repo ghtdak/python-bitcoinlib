@@ -16,6 +16,7 @@ from bitcoin.core import *
 
 MSG_TX = 1
 MSG_BLOCK = 2
+MSG_FILTERED_BLOCK = 3
 
 
 class msg_version(object):
