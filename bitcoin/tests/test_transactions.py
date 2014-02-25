@@ -108,8 +108,10 @@ class Test_CTransaction(unittest.TestCase):
                     flags.add(SCRIPT_VERIFY_P2SH)
 
                 valid = VerifyScript(tx.vin[i].scriptSig,
-                                     prevouts[tx.vin[i].prevout], tx, i, 0,
-                                     flags)
+                                     prevouts[tx.vin[i].prevout],
+                                     tx,
+                                     i,
+                                     flags=flags)
                 if not valid:
                     import pdb
                     pdb.set_trace()
@@ -133,8 +135,10 @@ class Test_CTransaction(unittest.TestCase):
                     flags.add(SCRIPT_VERIFY_P2SH)
 
                 valid = VerifyScript(tx.vin[i].scriptSig,
-                                     prevouts[tx.vin[i].prevout], tx, i, 0,
-                                     flags)
+                                     prevouts[tx.vin[i].prevout],
+                                     tx,
+                                     i,
+                                     flags=flags)
                 if not valid:
                     break
 

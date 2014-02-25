@@ -66,7 +66,6 @@ class Test_EvalScript(unittest.TestCase):
                                 scriptPubKey,
                                 None,
                                 0,
-                                SIGHASH_NONE,
                                 flags=self.flags):
                 self.fail('Script FAILED: %r %r %r' %
                           (scriptSig, scriptPubKey, comment))
@@ -74,11 +73,6 @@ class Test_EvalScript(unittest.TestCase):
     def test_script_invalid(self):
         for scriptSig, scriptPubKey, comment, test_case in load_test_vectors(
                 'script_invalid.json'):
-            if VerifyScript(scriptSig,
-                            scriptPubKey,
-                            None,
-                            0,
-                            SIGHASH_NONE,
-                            flags=self.flags):
+            if VerifyScript(scriptSig, scriptPubKey, None, 0, flags=self.flags):
                 self.fail('Script FAILED: (by succeeding) %r %r %r' %
                           (scriptSig, scriptPubKey, comment))
