@@ -17,6 +17,10 @@ import bitcoin.base58
 import bitcoin.core.script as script
 
 
+class CBitcoinAddressError(bitcoin.base58.Base58Error):
+    """Raised when an invalid Bitcoin address is encountered"""
+
+
 class CBitcoinAddress(bitcoin.base58.CBase58Data):
     """A Bitcoin address"""
 
