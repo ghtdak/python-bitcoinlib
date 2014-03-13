@@ -80,6 +80,13 @@ class EvalScriptError(bitcoin.core.ValidationError):
         nOpCount = nOpCount
 
 
+class MaxOpCountError(EvalScriptError):
+
+    def __init__(self, **kwargs):
+        super(MaxOpCountError, self).__init__('max opcode count exceeded', **
+                                              kwargs)
+
+
 class MissingOpArgumentsError(EvalScriptError):
     """Missing arguments"""
 
@@ -93,7 +100,7 @@ class ArgumentsInvalidError(EvalScriptError):
     """Arguments are invalid"""
 
     def __init__(self, opcode, msg, **kwargs):
-        super(MissingOpArgumentsError, self).__init__(
+        super(ArgumentsInvalidError, self).__init__(
             '%s args invalid: %s' % (OPCODE_NAMES[opcode], msg), **kwargs)
 
 
@@ -154,7 +161,7 @@ def _CheckSig(sig, pubkey, script, txTo, inIdx, err_raiser):
     return key.verify(h, sig)
 
 
-def _CheckMultiSig(opcode, script, stack, txTo, inIdx, err_raiser):
+def _CheckMultiSig(opcode, script, stack, txTo, inIdx, err_raiser, nOpCount):
     i = 1
     if len(stack) < i:
         err_raiser(MissingOpArgumentsError, opcode, stack, i)
@@ -165,6 +172,9 @@ def _CheckMultiSig(opcode, script, stack, txTo, inIdx, err_raiser):
     i += 1
     ikey = i
     i += keys_count
+    nOpCount[0] += keys_count
+    if nOpCount[0] > MAX_SCRIPT_OPCODES:
+        err_raiser(MaxOpCountError)
     if len(stack) < i:
         err_raiser(ArgumentsInvalidError, opcode, "not enough keys on stack")
 
@@ -175,9 +185,11 @@ def _CheckMultiSig(opcode, script, stack, txTo, inIdx, err_raiser):
     i += 1
     isig = i
     i += sigs_count
-    if len(stack) < i:
+    if len(stack) < i - 1:
         raise err_raiser(ArgumentsInvalidError, opcode,
                          "not enough sigs on stack")
+    elif len(stack) < i:
+        raise err_raiser(ArgumentsInvalidError, opcode, "missing dummy value")
 
     # Drop the signature, since there's no way for a signature to sign itself
     #
@@ -211,12 +223,11 @@ def _CheckMultiSig(opcode, script, stack, txTo, inIdx, err_raiser):
         stack.pop()
         i -= 1
 
-    assert opcode == OP_CHECKMULTISIG
-
-    if success:
-        stack.append(b"\x01")
-    else:
-        stack.append(b"\x00")
+    if opcode == OP_CHECKMULTISIG:
+        if success:
+            stack.append(b"\x01")
+        else:
+            stack.append(b"\x00")
 
 # OP_2MUL and OP_2DIV are *not* included in this list as they are disabled
 ISA_UNOP = {OP_1ADD, OP_1SUB, OP_NEGATE, OP_ABS, OP_NOT, OP_0NOTEQUAL,}
@@ -365,7 +376,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
     altstack = []
     vfExec = []
     pbegincodehash = 0
-    nOpCount = 0
+    nOpCount = [0]
     for (sop, sop_data, sop_pc) in scriptIn.raw_iter():
         fExec = _CheckExec(vfExec)
 
@@ -389,16 +400,16 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
                       altstack=altstack,
                       vfExec=vfExec,
                       pbegincodehash=pbegincodehash,
-                      nOpCount=nOpCount)
+                      nOpCount=nOpCount[0])
 
         if sop in disabled_opcodes:
             err_raiser(EvalScriptError, 'opcode %s is disabled' %
                        OPCODE_NAMES[sop])
 
         if sop > OP_16:
-            nOpCount += 1
-            if nOpCount > MAX_SCRIPT_OPCODES:
-                err_raiser(EvalScriptError, 'max opcode count exceeded')
+            nOpCount[0] += 1
+            if nOpCount[0] > MAX_SCRIPT_OPCODES:
+                err_raiser(MaxOpCountError)
 
         def check_args(n):
             if len(stack) < n:
@@ -474,7 +485,8 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
 
         elif fExec and sop == OP_CHECKMULTISIG or sop == OP_CHECKMULTISIGVERIFY:
             tmpScript = CScript(scriptIn[pbegincodehash:])
-            _CheckMultiSig(sop, tmpScript, stack, txTo, inIdx, err_raiser)
+            _CheckMultiSig(sop, tmpScript, stack, txTo, inIdx, err_raiser,
+                           nOpCount)
 
         elif fExec and sop == OP_CHECKSIG or sop == OP_CHECKSIGVERIFY:
             check_args(2)
