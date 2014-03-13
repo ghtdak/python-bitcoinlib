@@ -10,7 +10,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import struct
 import time
 import random
-import cStringIO
+import sys
+if sys.version > '3':
+    import io
+else:
+    import cStringIO as io
 from bitcoin.coredefs import *
 from bitcoin.core import *
 
@@ -389,7 +393,7 @@ def message_read(netmagic, f):
     recvbuf = recvbuf[4 + 12 + 4 + 4 + msglen:]
 
     if command in messagemap:
-        f = cStringIO.StringIO(msg)
+        f = io.StringIO(msg)
         t = messagemap[command]()
         t.deserialize(f)
         return t
