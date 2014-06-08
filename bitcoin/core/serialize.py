@@ -16,13 +16,14 @@ import struct
 
 # Py3 compatibility
 import sys
-bchr = chr
-bord = ord
+
 if sys.version > '3':
     bchr = lambda x: bytes([x])
     bord = lambda x: x[0]
     from io import BytesIO
 else:
+    bchr = chr
+    bord = ord
     from cStringIO import StringIO as BytesIO
 
 MAX_SIZE = 0x02000000
@@ -50,7 +51,8 @@ def ser_read(f, n):
         raise SerializationError('Asked to read 0x%x bytes; MAX_SIZE exceeded')
     r = f.read(n)
     if len(r) < n:
-        raise SerializationTruncationError()
+        raise SerializationTruncationError(
+            'Asked to read %i bytes, but only got %i' % (n, len(r)))
     return r
 
 
@@ -183,19 +185,51 @@ class uint256VectorSerializer(Serializer):
     """Serialize vectors of uint256"""
 
     @classmethod
-    def stream_serialize(cls, inner_cls, objs, f):
-        VarIntSerializer.stream_serialize(len(objs), f)
-        for obj in objs:
-            assert len(obj) == 32
-            f.write(obj)
+    def stream_serialize(cls, uints, f):
+        VarIntSerializer.stream_serialize(len(uints), f)
+        for uint in uints:
+            assert len(uint) == 32
+            f.write(uint)
 
     @classmethod
-    def stream_deserialize(cls, inner_cls, f):
+    def stream_deserialize(cls, f):
         n = VarIntSerializer.stream_deserialize(f)
         r = []
         for i in range(n):
             r.append(ser_read(f, 32))
         return r
+
+
+class intVectorSerialzer(Serializer):
+
+    @classmethod
+    def stream_serialize(cls, ints, f):
+        l = len(ints)
+        VarIntSerializer.stream_serialize(l, f)
+        for i in ints:
+            f.write(struct.pack(b"<i", i))
+
+    @classmethod
+    def stream_deserialize(cls, f):
+        l = VarIntSerializer.stream_deserialize(f)
+        ints = []
+        for i in range(l):
+            ints.append(struct.unpack(b"<i", ser_read(f, 4)))
+
+
+class VarStringSerializer(Serializer):
+    """Serialize variable length strings"""
+
+    @classmethod
+    def stream_serialize(cls, s, f):
+        l = len(s)
+        VarIntSerializer.stream_serialize(l, f)
+        f.write(s)
+
+    @classmethod
+    def stream_deserialize(cls, f):
+        l = VarIntSerializer.stream_deserialize(f)
+        return ser_read(f, l)
 
 
 def uint256_from_str(s):
@@ -220,38 +254,6 @@ def uint256_from_compact(c):
 def uint256_to_shortstr(u):
     s = "%064x" % (u,)
     return s[:16]
-
-
-def deser_int_vector(f):
-    """Deserialize a vector of ints"""
-    nit = struct.unpack(b"<B", f.read(1))[0]
-    if nit == 253:
-        nit = struct.unpack(b"<H", f.read(2))[0]
-    elif nit == 254:
-        nit = struct.unpack(b"<I", f.read(4))[0]
-    elif nit == 255:
-        nit = struct.unpack(b"<Q", f.read(8))[0]
-    r = []
-    for i in range(nit):
-        t = struct.unpack(b"<i", f.read(4))[0]
-        r.append(t)
-    return r
-
-
-def ser_int_vector(l):
-    """Serialize a vector of ints"""
-    r = b""
-    if len(l) < 253:
-        r = bchr(len(l))
-    elif len(s) < 0x10000:
-        r = bchr(253) + struct.pack(b"<H", len(l))
-    elif len(s) < 0x100000000:
-        r = bchr(254) + struct.pack(b"<I", len(l))
-    else:
-        r = bchr(255) + struct.pack(b"<Q", len(l))
-    for i in l:
-        r += struct.pack(b"<i", i)
-    return r
 
 
 def Hash(msg):

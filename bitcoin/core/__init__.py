@@ -22,8 +22,11 @@ MAX_MONEY = 21000000 * COIN
 MAX_BLOCK_SIZE = 1000000
 MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE / 50
 
+BIP0031_VERSION = 60000
 PROTO_VERSION = 60002
 MIN_PROTO_VERSION = 209
+
+CADDR_TIME_VERSION = 31402
 
 
 def MoneyRange(nValue):
@@ -74,7 +77,7 @@ def b2lx(b):
 
 def str_money_value(value):
     """Convert an integer money value to a fixed point string"""
-    r = '%i.%08i' % (value // 100000000, value % 100000000)
+    r = '%i.%08i' % (value // COIN, value % COIN)
     r = r.rstrip('0')
     if r[-1] == '.':
         r += '0'
@@ -244,15 +247,15 @@ class CTransaction(Serializable):
 class CBlockHeader(Serializable):
     """A block header"""
     __slots__ = ['nVersion', 'hashPrevBlock', 'hashMerkleRoot', 'nTime',
-                 'nBits', 'nBits']
+                 'nBits', 'nNonce']
 
     def __init__(self,
                  nVersion=2,
-                 hashPrevBlock=None,
-                 hashMerkleRoot=None,
-                 nTime=None,
-                 nBits=None,
-                 nNonce=None):
+                 hashPrevBlock=b'\x00' * 32,
+                 hashMerkleRoot=b'\x00' * 32,
+                 nTime=0,
+                 nBits=0,
+                 nNonce=0):
         self.nVersion = nVersion
         assert len(hashPrevBlock) == 32
         self.hashPrevBlock = hashPrevBlock
@@ -310,11 +313,11 @@ class CBlock(CBlockHeader):
 
     def __init__(self,
                  nVersion=2,
-                 hashPrevBlock=None,
-                 hashMerkleRoot=None,
-                 nTime=None,
-                 nBits=None,
-                 nNonce=None,
+                 hashPrevBlock=b'\x00' * 32,
+                 hashMerkleRoot=b'\x00' * 32,
+                 nTime=0,
+                 nBits=0,
+                 nNonce=0,
                  vtx=None):
         super(CBlock, self).__init__(nVersion, hashPrevBlock, hashMerkleRoot,
                                      nTime, nBits, nNonce)

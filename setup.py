@@ -22,4 +22,5 @@ setup(
     keywords='bitcoin',
     packages=find_packages(),
     zip_safe=False,
-    install_requires=requires,)
+    install_requires=requires,
+    test_suite="bitcoin.tests")
