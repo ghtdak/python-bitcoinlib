@@ -54,7 +54,7 @@ def payment_request(request):
     open('sds_pr_blob', 'wb').write(sds_pr)
     headers = {'Content-Type': 'application/bitcoin-payment',
                'Accept': 'application/bitcoin-paymentrequest'}
-    response = urllib2.Request('file:sds_prblob', None, headers)
+    response = urllib2.Request('file:sds_pr_blob', None, headers)
 
     return response
 
@@ -71,9 +71,9 @@ def payment_ack(request):
 
     sds_pa = pao.SerializeToString()
 
-    open('sds_pablob', 'wb').write(sds_pa)
+    open('sds_pa_blob', 'wb').write(sds_pa)
     headers = {'Content-Type': 'application/bitcoin-payment',
                'Accept': 'application/bitcoin-paymentack'}
-    response = urllib2.Request('file:sds_pablob', None, headers)
+    response = urllib2.Request('file:sds_pa_blob', None, headers)
 
     return response
