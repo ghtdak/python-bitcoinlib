@@ -56,7 +56,7 @@ def payment_request(request):
                'Accept': 'application/bitcoin-paymentrequest'}
     response = urllib2.Request('file:sds_prblob', None, headers)
 
-    return urllib2.urlrequest(response.read())
+    return response
 
 
 def payment_ack(request):
@@ -76,4 +76,4 @@ def payment_ack(request):
                'Accept': 'application/bitcoin-paymentack'}
     response = urllib2.Request('file:sds_pablob', None, headers)
 
-    return urllib2.urlrequest(response.read())
+    return response
