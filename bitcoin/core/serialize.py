@@ -108,6 +108,16 @@ class Serializable(object):
         return hash(self.serialize())
 
 
+class ImmutableSerializable(Serializable):
+    """Immutable serializable object"""
+
+    def __setattr__(self, name, value):
+        raise AttributeError('Object is immutable')
+
+    def __delattr__(self, name):
+        raise AttributeError('Object is immutable')
+
+
 class Serializer(object):
     """Base class for object serializers"""
 
