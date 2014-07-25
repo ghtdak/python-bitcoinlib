@@ -29,6 +29,18 @@ else:
 MAX_SIZE = 0x02000000
 
 
+def Hash(msg):
+    """SHA256^2)(msg) -> bytes"""
+    return hashlib.sha256(hashlib.sha256(msg).digest()).digest()
+
+
+def Hash160(msg):
+    """RIPEME160(SHA256(msg)) -> bytes"""
+    h = hashlib.new('ripemd160')
+    h.update(hashlib.sha256(msg).digest())
+    return h.digest()
+
+
 class SerializationError(Exception):
     """Base class for serialization errors"""
 
@@ -78,6 +90,10 @@ class Serializable(object):
     def deserialize(cls, buf):
         """Deserialize bytes, returning an instance"""
         return cls.stream_deserialize(BytesIO(buf))
+
+    def GetHash(self):
+        """Return the hash of the serialized object"""
+        return Hash(self.serialize())
 
     def __eq__(self, other):
         if (not isinstance(other, self.__class__) and
@@ -254,15 +270,3 @@ def uint256_from_compact(c):
 def uint256_to_shortstr(u):
     s = "%064x" % (u,)
     return s[:16]
-
-
-def Hash(msg):
-    """SHA256^2)(msg) -> bytes"""
-    return hashlib.sha256(hashlib.sha256(msg).digest()).digest()
-
-
-def Hash160(msg):
-    """RIPEME160(SHA256(msg)) -> bytes"""
-    h = hashlib.new('ripemd160')
-    h.update(hashlib.sha256(msg).digest())
-    return h.digest()
