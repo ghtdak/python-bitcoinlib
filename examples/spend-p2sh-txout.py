@@ -4,6 +4,11 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Low-level example of how to spend a P2SH/BIP16 txout"""
 
+import sys
+if sys.version_info.major < 3:
+    sys.stderr.write('Sorry, Python 3.x required by this example.\n')
+    sys.exit(1)
+
 import hashlib
 
 from bitcoin import SelectParams
