@@ -11,7 +11,7 @@ requires = []
 
 setup(
     name='python-bitcoinlib',
-    version='0.2.1-SNAPSHOT',
+    version='0.2.1',
     description=
     'This python library provides an easy interface to the Bitcoin data structures and protocol.',
     long_description=README,
