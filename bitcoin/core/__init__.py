@@ -159,6 +159,7 @@ class COutPoint(ImmutableSerializable):
 @__make_mutable
 class CMutableOutPoint(COutPoint):
     """A mutable COutPoint"""
+    __slots__ = []
 
     @classmethod
     def from_outpoint(cls, outpoint):
@@ -225,6 +226,7 @@ class CTxIn(ImmutableSerializable):
 @__make_mutable
 class CMutableTxIn(CTxIn):
     """A mutable CTxIn"""
+    __slots__ = []
 
     def __init__(self, prevout=None, scriptSig=CScript(), nSequence=0xffffffff):
         if not (0 <= nSequence <= 0xffffffff):
@@ -298,6 +300,7 @@ class CTxOut(ImmutableSerializable):
 @__make_mutable
 class CMutableTxOut(CTxOut):
     """A mutable CTxOut"""
+    __slots__ = []
 
     @classmethod
     def from_txout(cls, txout):
@@ -366,6 +369,7 @@ class CTransaction(ImmutableSerializable):
 @__make_mutable
 class CMutableTransaction(CTransaction):
     """A mutable transaction"""
+    __slots__ = []
 
     def __init__(self, vin=None, vout=None, nLockTime=0, nVersion=1):
         if not (0 <= nLockTime <= 0xffffffff):
