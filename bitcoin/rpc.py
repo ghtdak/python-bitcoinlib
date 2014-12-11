@@ -269,7 +269,8 @@ class Proxy(RawProxy):
     def getinfo(self):
         """Return an object containing various state info"""
         r = self._call('getinfo')
-        r['balance'] = int(r['balance'] * COIN)
+        if 'balance' in r:
+            r['balance'] = int(r['balance'] * COIN)
         r['paytxfee'] = int(r['paytxfee'] * COIN)
         return r
 
