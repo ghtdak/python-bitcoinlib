@@ -25,7 +25,7 @@ import binascii
 
 import bitcoin.core
 
-b58_digits = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+B58_DIGITS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 
 class Base58Error(Exception):
@@ -50,7 +50,7 @@ def encode(b):
     res = []
     while n > 0:
         n, r = divmod(n, 58)
-        res.append(b58_digits[r])
+        res.append(B58_DIGITS[r])
     res = ''.join(res[::-1])
 
     # Encode leading zeros as base58 zeros
@@ -64,7 +64,7 @@ def encode(b):
             pad += 1
         else:
             break
-    return b58_digits[0] * pad + res
+    return B58_DIGITS[0] * pad + res
 
 
 def decode(s):
@@ -76,10 +76,10 @@ def decode(s):
     n = 0
     for c in s:
         n *= 58
-        if c not in b58_digits:
+        if c not in B58_DIGITS:
             raise InvalidBase58Error(
                 'Character %r is not a valid base58 character' % c)
-        digit = b58_digits.index(c)
+        digit = B58_DIGITS.index(c)
         n += digit
 
     # Convert the integer to bytes
@@ -91,7 +91,7 @@ def decode(s):
     # Add padding back.
     pad = 0
     for c in s[:-1]:
-        if c == b58_digits[0]: pad += 1
+        if c == B58_DIGITS[0]: pad += 1
         else: break
     return b'\x00' * pad + res
 
