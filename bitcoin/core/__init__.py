@@ -33,7 +33,7 @@ def MoneyRange(nValue):
     return 0 <= nValue <= MAX_MONEY
 
 
-def py2_x(h):
+def _py2_x(h):
     """Convert a hex string to bytes"""
     return binascii.unhexlify(h)
 
@@ -43,7 +43,7 @@ def x(h):
     return binascii.unhexlify(h.encode('utf8'))
 
 
-def py2_b2x(b):
+def _py2_b2x(b):
     """Convert bytes to a hex string"""
     return binascii.hexlify(b)
 
@@ -53,7 +53,7 @@ def b2x(b):
     return binascii.hexlify(b).decode('utf8')
 
 
-def py2_lx(h):
+def _py2_lx(h):
     """Convert a little-endian hex string to bytes
 
     Lets you write uint256's and uint160's the way the Satoshi codebase shows
@@ -71,7 +71,7 @@ def lx(h):
     return binascii.unhexlify(h.encode('utf8'))[::-1]
 
 
-def py2_b2lx(b):
+def _py2_b2lx(b):
     """Convert bytes to a little-endian hex string
 
     Lets you show uint256's and uint160's the way the Satoshi codebase shows
@@ -90,15 +90,15 @@ def b2lx(b):
 
 
 if not (sys.version > '3'):
-    x = py2_x
-    b2x = py2_b2x
-    lx = py2_lx
-    b2lx = py2_b2lx
+    x = _py2_x
+    b2x = _py2_b2x
+    lx = _py2_lx
+    b2lx = _py2_b2lx
 
-del py2_x
-del py2_b2x
-del py2_lx
-del py2_b2lx
+del _py2_x
+del _py2_b2x
+del _py2_lx
+del _py2_b2lx
 
 
 def str_money_value(value):
