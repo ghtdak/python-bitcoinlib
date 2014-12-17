@@ -14,12 +14,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
-bchr = chr
-bord = ord
+_bchr = chr
+_bord = ord
 if sys.version > '3':
     long = int
-    bchr = lambda x: bytes([x])
-    bord = lambda x: x
+    _bchr = lambda x: bytes([x])
+    _bord = lambda x: x
 
 import binascii
 
@@ -116,7 +116,7 @@ class CBase58Data(bytes):
                 'Checksum mismatch: expected %r, calculated %r' %
                 (check0, check1))
 
-        return cls.from_bytes(data, bord(verbyte[0]))
+        return cls.from_bytes(data, _bord(verbyte[0]))
 
     def __init__(self, s):
         """Initialize from base58-encoded string
@@ -148,7 +148,7 @@ class CBase58Data(bytes):
 
     def __str__(self):
         """Convert to string"""
-        vs = bchr(self.nVersion) + self
+        vs = _bchr(self.nVersion) + self
         check = bitcoin.core.Hash(vs)[0:4]
         return encode(vs + check)
 
