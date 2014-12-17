@@ -24,11 +24,11 @@ import sys
 if sys.version > '3':
     _bchr = lambda x: bytes([x])
     _bord = lambda x: x[0]
-    from io import BytesIO
+    from io import BytesIO as _BytesIO
 else:
     _bchr = chr
     _bord = ord
-    from cStringIO import StringIO as BytesIO
+    from cStringIO import StringIO as _BytesIO
 
 MAX_SIZE = 0x02000000
 
@@ -102,7 +102,7 @@ class Serializable(object):
 
     def serialize(self):
         """Serialize, returning bytes"""
-        f = BytesIO()
+        f = _BytesIO()
         self.stream_serialize(f)
         return f.getvalue()
 
@@ -115,7 +115,7 @@ class Serializable(object):
         If allow_padding is False and not all bytes are consumed during
         deserialization DeserializationExtraDataError will be raised.
         """
-        fd = BytesIO(buf)
+        fd = _BytesIO(buf)
         r = cls.stream_deserialize(fd)
         if not allow_padding:
             padding = fd.read()
@@ -186,13 +186,13 @@ class Serializer(object):
 
     @classmethod
     def serialize(cls, obj):
-        f = BytesIO()
+        f = _BytesIO()
         cls.stream_serialize(obj, f)
         return f.getvalue()
 
     @classmethod
     def deserialize(cls, buf):
-        return cls.stream_deserialize(BytesIO(buf))
+        return cls.stream_deserialize(_BytesIO(buf))
 
 
 class VarIntSerializer(Serializer):
@@ -332,3 +332,24 @@ def uint256_from_compact(c):
 def uint256_to_shortstr(u):
     s = "%064x" % (u,)
     return s[:16]
+
+
+__all__ = ('MAX_SIZE',
+           'Hash',
+           'Hash160',
+           'SerializationError',
+           'SerializationTruncationError',
+           'DeserializationExtraDataError',
+           'ser_read',
+           'Serializable',
+           'ImmutableSerializable',
+           'Serializer',
+           'VarIntSerializer',
+           'BytesSerializer',
+           'VectorSerializer',
+           'uint256VectorSerializer',
+           'intVectorSerialzer',
+           'VarStringSerializer',
+           'uint256_from_str',
+           'uint256_from_compact',
+           'uint256_to_shortstr',)

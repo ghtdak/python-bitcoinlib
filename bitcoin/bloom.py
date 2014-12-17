@@ -193,3 +193,6 @@ class CBloomFilter(bitcoin.core.serialize.Serializable):
             bitcoin.core.serialize.BytesSerializer.stream_serialize(
                 bytes(self.vData), f)
         f.write(self.__struct.pack(self.nHashFuncs, self.nTweak, self.nFlags))
+
+
+__all__ = ('MurmurHash3', 'CBloomFilter',)
