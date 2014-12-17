@@ -34,9 +34,9 @@ from bitcoin.core import COIN, lx, b2lx, CBlock, CTransaction, COutPoint, CTxOut
 from bitcoin.core.script import CScript
 from bitcoin.wallet import CBitcoinAddress
 
-USER_AGENT = "AuthServiceProxy/0.1"
+DEFAULT_USER_AGENT = "AuthServiceProxy/0.1"
 
-HTTP_TIMEOUT = 30
+DEFAULT_HTTP_TIMEOUT = 30
 
 # (un)hexlify to/from unicode, needed for Python3
 unhexlify = binascii.unhexlify
@@ -60,7 +60,7 @@ class RawProxy(object):
                  service_url=None,
                  service_port=None,
                  btc_conf_file=None,
-                 timeout=HTTP_TIMEOUT,
+                 timeout=DEFAULT_HTTP_TIMEOUT,
                  _connection=None):
         """Low-level JSON-RPC proxy
 
@@ -142,7 +142,7 @@ class RawProxy(object):
                                'id': self.__id_count})
         self.__conn.request('POST', self.__url.path, postdata,
                             {'Host': self.__url.hostname,
-                             'User-Agent': USER_AGENT,
+                             'User-Agent': DEFAULT_USER_AGENT,
                              'Authorization': self.__auth_header,
                              'Content-type': 'application/json'})
 
@@ -174,7 +174,7 @@ class RawProxy(object):
         postdata = json.dumps(list(rpc_call_list))
         self.__conn.request('POST', self.__url.path, postdata,
                             {'Host': self.__url.hostname,
-                             'User-Agent': USER_AGENT,
+                             'User-Agent': DEFAULT_USER_AGENT,
                              'Authorization': self.__auth_header,
                              'Content-type': 'application/json'})
 
@@ -198,7 +198,7 @@ class Proxy(RawProxy):
                  service_url=None,
                  service_port=None,
                  btc_conf_file=None,
-                 timeout=HTTP_TIMEOUT,
+                 timeout=DEFAULT_HTTP_TIMEOUT,
                  **kwargs):
         """Create a proxy to a bitcoin RPC service
 
