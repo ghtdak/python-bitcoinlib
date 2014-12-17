@@ -220,7 +220,7 @@ class Proxy(RawProxy):
         super(Proxy, self).__init__(service_url=service_url,
                                     service_port=service_port,
                                     btc_conf_file=btc_conf_file,
-                                    timeout=HTTP_TIMEOUT,
+                                    timeout=timeout,
                                     **kwargs)
 
     def getaccountaddress(self, account=None):
