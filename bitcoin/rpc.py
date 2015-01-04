@@ -55,7 +55,7 @@ class JSONRPCException(Exception):
 
 
 class RawProxy(object):
-    # FIXME: need a CChainParams rather than hard-coded service_port
+
     def __init__(self,
                  service_url=None,
                  service_port=None,
@@ -82,7 +82,8 @@ class RawProxy(object):
 
             # Extract contents of bitcoin.conf to build service_url
             with open(btc_conf_file, 'r') as fd:
-                conf = {}
+                # Bitcoin Core accepts empty rpcuser, not specified in btc_conf_file
+                conf = {'rpcuser': ""}
                 for line in fd.readlines():
                     if '#' in line:
                         line = line[:line.index('#')]
@@ -103,6 +104,11 @@ class RawProxy(object):
                 else:
                     raise ValueError('Unknown rpcssl value %r' % conf['rpcssl'])
 
+                if 'rpcpassword' not in conf:
+                    raise ValueError(
+                        'The value of rpcpassword not specified in the configuration file: %s'
+                        % btc_conf_file)
+
                 service_url = ('%s://%s:%s@localhost:%d' %
                                ('https'
                                 if conf['rpcssl'] else 'http', conf['rpcuser'],
@@ -111,7 +117,10 @@ class RawProxy(object):
         self.__service_url = service_url
         self.__url = urlparse.urlparse(service_url)
         if self.__url.port is None:
-            port = 80
+            if self.__url.scheme == 'https':
+                port = httplib.HTTPS_PORT
+            else:
+                port = httplib.HTTP_PORT
         else:
             port = self.__url.port
         self.__id_count = 0
