@@ -22,6 +22,7 @@ from bitcoin.core.serialize import (Serializable,
 
 PROTO_VERSION = 60002
 CADDR_TIME_VERSION = 31402
+IPV4_COMPAT = b"\x00" * 10 + b"\xff" * 2
 
 
 class CAddress(Serializable):
@@ -30,7 +31,7 @@ class CAddress(Serializable):
         self.protover = protover
         self.nTime = 0
         self.nServices = 1
-        self.pchReserved = b"\x00" * 10 + b"\xff" * 2
+        self.pchReserved = IPV4_COMPAT
         self.ip = "0.0.0.0"
         self.port = 0
 
@@ -40,8 +41,14 @@ class CAddress(Serializable):
         if c.protover >= CADDR_TIME_VERSION and not without_time:
             c.nTime = struct.unpack(b"<I", ser_read(f, 4))[0]
         c.nServices = struct.unpack(b"<Q", ser_read(f, 8))[0]
-        c.pchReserved = ser_read(f, 12)
-        c.ip = socket.inet_ntoa(ser_read(f, 4))
+
+        packedIP = ser_read(f, 16)
+
+        if bytes(packedIP[0:12]) == IPV4_COMPAT:  # IPv4
+            c.ip = socket.inet_ntop(socket.AF_INET, packedIP[12:16])
+        else:  #IPv6
+            c.ip = socket.inet_ntop(socket.AF_INET6, packedIP)
+
         c.port = struct.unpack(b">H", ser_read(f, 2))[0]
         return c
 
@@ -49,8 +56,14 @@ class CAddress(Serializable):
         if self.protover >= CADDR_TIME_VERSION and not without_time:
             f.write(struct.pack(b"<I", self.nTime))
         f.write(struct.pack(b"<Q", self.nServices))
-        f.write(self.pchReserved)
-        f.write(socket.inet_aton(self.ip))
+
+        protocol = socket.AF_INET
+        if ":" in self.ip:  # determine if address is IPv6
+            f.write(socket.inet_pton(socket.AF_INET6, self.ip))
+        else:
+            f.write(self.pchReserved)
+            f.write(socket.inet_pton(socket.AF_INET, self.ip))
+
         f.write(struct.pack(b">H", self.port))
 
     def __repr__(self):
