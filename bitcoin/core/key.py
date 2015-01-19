@@ -108,7 +108,6 @@ class CECKey:
         return kdf(r)
 
     def sign(self, hash):
-        # FIXME: need unit tests for below cases
         if not isinstance(hash, bytes):
             raise TypeError('Hash must be bytes instance; got %r' %
                             hash.__class__)
