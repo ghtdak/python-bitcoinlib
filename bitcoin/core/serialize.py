@@ -78,7 +78,8 @@ def ser_read(f, n):
     functions.
     """
     if n > MAX_SIZE:
-        raise SerializationError('Asked to read 0x%x bytes; MAX_SIZE exceeded')
+        raise SerializationError('Asked to read 0x%x bytes; MAX_SIZE exceeded' %
+                                 n)
     r = f.read(n)
     if len(r) < n:
         raise SerializationTruncationError(
