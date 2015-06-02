@@ -95,6 +95,7 @@ class RawProxy(object):
                     service_port = bitcoin.params.RPC_PORT
                 conf['rpcport'] = int(conf.get('rpcport', service_port))
                 conf['rpcssl'] = conf.get('rpcssl', '0')
+                conf['rpchost'] = conf.get('rpcconnect', 'localhost')
 
                 if conf['rpcssl'].lower() in ('0', 'false'):
                     conf['rpcssl'] = False
@@ -108,10 +109,10 @@ class RawProxy(object):
                         'The value of rpcpassword not specified in the configuration file: %s'
                         % btc_conf_file)
 
-                service_url = ('%s://%s:%s@localhost:%d' %
-                               ('https'
-                                if conf['rpcssl'] else 'http', conf['rpcuser'],
-                                conf['rpcpassword'], conf['rpcport']))
+                service_url = ('%s://%s:%s@%s:%d' %
+                               ('https' if conf['rpcssl'] else 'http',
+                                conf['rpcuser'], conf['rpcpassword'],
+                                conf['rpchost'], conf['rpcport']))
 
         self.__service_url = service_url
         self.__url = urlparse.urlparse(service_url)
