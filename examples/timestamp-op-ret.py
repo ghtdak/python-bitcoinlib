@@ -21,6 +21,7 @@ import hashlib
 import bitcoin.rpc
 import sys
 
+from bitcoin import params
 from bitcoin.core import *
 from bitcoin.core.script import *
 
@@ -52,7 +53,8 @@ for digest in digests:
 
     change_addr = proxy.getnewaddress()
     change_pubkey = proxy.validateaddress(change_addr)['pubkey']
-    change_out = CMutableTxOut(MAX_MONEY, CScript([change_pubkey, OP_CHECKSIG]))
+    change_out = CMutableTxOut(params.MAX_MONEY,
+                               CScript([change_pubkey, OP_CHECKSIG]))
 
     digest_outs = [CMutableTxOut(0, CScript([OP_RETURN, digest]))]
 
