@@ -47,12 +47,16 @@ if sys.version > '3':
     hexlify = lambda b: binascii.hexlify(b).decode('utf8')
 
 
-class JSONRPCException(Exception):
+class JSONRPCError(Exception):
+    """JSON-RPC protocol error"""
 
     def __init__(self, rpc_error):
         super(JSONRPCException, self).__init__(
             'msg: %r  code: %r' % (rpc_error['message'], rpc_error['code']))
         self.error = rpc_error
+
+# 0.4.0 compatibility
+JSONRPCException = JSONRPCError
 
 
 class BaseProxy(object):
@@ -184,9 +188,9 @@ class BaseProxy(object):
 
         response = self._get_response()
         if response['error'] is not None:
-            raise JSONRPCException(response['error'])
+            raise JSONRPCError(response['error'])
         elif 'result' not in response:
-            raise JSONRPCException({
+            raise JSONRPCError({
                 'code': -343,
                 'message': 'missing JSON-RPC result'
             })
@@ -206,7 +210,7 @@ class BaseProxy(object):
     def _get_response(self):
         http_response = self.__conn.getresponse()
         if http_response is None:
-            raise JSONRPCException({
+            raise JSONRPCError({
                 'code': -342,
                 'message': 'missing HTTP response from server'
             })
@@ -222,7 +226,7 @@ class RawProxy(BaseProxy):
     """Low-level proxy to a bitcoin JSON-RPC service
 
     Unlike ``Proxy``, no conversion is done besides parsing JSON. As far as
-    Python is concerned, you can call any method; ``JSONRPCException`` will be
+    Python is concerned, you can call any method; ``JSONRPCError`` will be
     raised if the server does not recognize it.
     """
 
@@ -300,15 +304,18 @@ class Proxy(BaseProxy):
         return CBitcoinSecret(r)
 
     def getaccountaddress(self, account=None):
-        """Return the current Bitcoin address for receiving payments to this account."""
+        """Return the current Bitcoin address for receiving payments to this
+        account."""
         r = self._call('getaccountaddress', account)
         return CBitcoinAddress(r)
 
     def getbalance(self, account='*', minconf=1):
         """Get the balance
 
-        account - The selected account. Defaults to "*" for entire wallet. It may be the default account using "".
-        minconf - Only include transactions confirmed at least this many times. (default=1)
+        account - The selected account. Defaults to "*" for entire wallet. It
+                  may be the default account using "".
+        minconf - Only include transactions confirmed at least this many times.
+                  (default=1)
         """
         r = self._call('getbalance', account, minconf)
         return int(r * COIN)
@@ -326,7 +333,7 @@ class Proxy(BaseProxy):
                 (self.__class__.__name__, block_hash.__class__))
         try:
             r = self._call('getblock', block_hash, False)
-        except JSONRPCException as ex:
+        except JSONRPCError as ex:
             raise IndexError('%s.getblock(): %s (%d)' % (
                 self.__class__.__name__, ex.error['message'], ex.error['code']))
         return CBlock.deserialize(unhexlify(r))
@@ -338,7 +345,7 @@ class Proxy(BaseProxy):
         """
         try:
             return lx(self._call('getblockhash', height))
-        except JSONRPCException as ex:
+        except JSONRPCError as ex:
             raise IndexError('%s.getblockhash(): %s (%d)' % (
                 self.__class__.__name__, ex.error['message'], ex.error['code']))
 
@@ -395,7 +402,7 @@ class Proxy(BaseProxy):
         """
         try:
             r = self._call('getrawtransaction', b2lx(txid), 1 if verbose else 0)
-        except JSONRPCException as ex:
+        except JSONRPCError as ex:
             raise IndexError('%s.getrawtransaction(): %s (%d)' % (
                 self.__class__.__name__, ex.error['message'], ex.error['code']))
         if verbose:
@@ -422,7 +429,8 @@ class Proxy(BaseProxy):
         always show zero.
 
         addr    - The address. (CBitcoinAddress instance)
-        minconf - Only include transactions confirmed at least this many times. (default=1)
+        minconf - Only include transactions confirmed at least this many times.
+                  (default=1)
         """
         r = self._call('getreceivedbyaddress', str(addr), minconf)
         return int(r * COIN)
@@ -436,7 +444,7 @@ class Proxy(BaseProxy):
         """
         try:
             r = self._call('gettransaction', b2lx(txid))
-        except JSONRPCException as ex:
+        except JSONRPCError as ex:
             raise IndexError('%s.getrawtransaction(): %s (%d)' % (
                 self.__class__.__name__, ex.error['message'], ex.error['code']))
         return r
@@ -577,4 +585,4 @@ class Proxy(BaseProxy):
         return self._addnode(node, 'remove')
 
 
-__all__ = ('JSONRPCException', 'RawProxy', 'Proxy',)
+__all__ = ('JSONRPCError', 'JSONRPCException', 'RawProxy', 'Proxy',)
