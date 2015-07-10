@@ -313,9 +313,10 @@ class Proxy(BaseProxy):
         """Get the balance
 
         account - The selected account. Defaults to "*" for entire wallet. It
-                  may be the default account using "".
+        may be the default account using "".
+
         minconf - Only include transactions confirmed at least this many times.
-                  (default=1)
+        (default=1)
         """
         r = self._call('getbalance', account, minconf)
         return int(r * COIN)
@@ -406,8 +407,8 @@ class Proxy(BaseProxy):
 
         Raises IndexError if transaction not found.
 
-        verbose - If true a dict is returned instead with additional information
-                 on the transaction.
+        verbose - If true a dict is returned instead with additional
+        information on the transaction.
 
         Note that if all txouts are spent and the transaction index is not
         enabled the transaction may not be available.
@@ -441,8 +442,9 @@ class Proxy(BaseProxy):
         always show zero.
 
         addr    - The address. (CBitcoinAddress instance)
+
         minconf - Only include transactions confirmed at least this many times.
-                  (default=1)
+        (default=1)
         """
         r = self._call('getreceivedbyaddress', str(addr), minconf)
         return int(r * COIN)
