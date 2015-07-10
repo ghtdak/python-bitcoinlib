@@ -43,6 +43,11 @@ sys.modules['ctypes'] = MagicMock()
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode',]
 
+autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance',]
+
+# Include __init__ docstring in class level docs
+autoclass_content = 'both'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
