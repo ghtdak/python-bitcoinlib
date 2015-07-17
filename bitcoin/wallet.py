@@ -164,6 +164,7 @@ class P2PKHBitcoinAddress(CBitcoinAddress):
         form.
 
         accept_non_canonical_pushdata - Allow non-canonical pushes (default True)
+
         accept_bare_checksig          - Treat bare-checksig as P2PKH scriptPubKeys (default True)
         """
         if accept_non_canonical_pushdata:
@@ -222,6 +223,7 @@ class CKey(object):
     Attributes:
 
     pub           - The corresponding CPubKey for this private key
+
     is_compressed - True if compressed
 
     """
