@@ -24,8 +24,6 @@ if sys.version > '3':
     _bchr = lambda x: bytes([x])
     _bord = lambda x: x
 
-import array
-import copy
 import struct
 
 import bitcoin.core
