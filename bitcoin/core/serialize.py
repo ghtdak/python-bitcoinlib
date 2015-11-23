@@ -193,7 +193,9 @@ class Serializer(object):
 
     @classmethod
     def deserialize(cls, buf):
-        return cls.stream_deserialize(_BytesIO(buf))
+        if isinstance(buf, str) or isinstance(buf, bytes):
+            buf = _BytesIO(buf)
+        return cls.stream_deserialize(buf)
 
 
 class VarIntSerializer(Serializer):
@@ -279,7 +281,7 @@ class uint256VectorSerializer(Serializer):
         return r
 
 
-class intVectorSerialzer(Serializer):
+class intVectorSerializer(Serializer):
 
     @classmethod
     def stream_serialize(cls, ints, f):
@@ -293,7 +295,8 @@ class intVectorSerialzer(Serializer):
         l = VarIntSerializer.stream_deserialize(f)
         ints = []
         for i in range(l):
-            ints.append(struct.unpack(b"<i", ser_read(f, 4)))
+            ints.append(struct.unpack(b"<i", ser_read(f, 4))[0])
+        return ints
 
 
 class VarStringSerializer(Serializer):
@@ -379,7 +382,7 @@ __all__ = ('MAX_SIZE',
            'BytesSerializer',
            'VectorSerializer',
            'uint256VectorSerializer',
-           'intVectorSerialzer',
+           'intVectorSerializer',
            'VarStringSerializer',
            'uint256_from_str',
            'uint256_from_compact',
