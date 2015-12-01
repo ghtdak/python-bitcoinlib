@@ -48,8 +48,8 @@ class Test_COutPoint(unittest.TestCase):
 
     def test_is_null(self):
         self.assertTrue(COutPoint().is_null())
-        self.assertTrue(COutPoint(hash=b'\x00' * 32, n=0xffffffff).is_null())
-        self.assertFalse(COutPoint(hash=b'\x00' * 31 + b'\x01').is_null())
+        self.assertTrue(COutPoint(_hash=b'\x00' * 32, n=0xffffffff).is_null())
+        self.assertFalse(COutPoint(_hash=b'\x00' * 31 + b'\x01').is_null())
         self.assertFalse(COutPoint(n=1).is_null())
 
     def test_repr(self):
@@ -147,21 +147,23 @@ class Test_CTransaction(unittest.TestCase):
         for prevouts, tx, enforceP2SH in load_test_vectors('tx_valid.json'):
             try:
                 CheckTransaction(tx)
+
             except CheckTransactionError:
-                self.fail('tx failed CheckTransaction(): ' \
-                        + str((prevouts, b2x(tx.serialize()), enforceP2SH)))
-                continue
+                self.fail('tx failed CheckTransaction(): '
+                          + str((prevouts, b2x(tx.serialize()), enforceP2SH)))
+            else:
+                for i in range(len(tx.vin)):
+                    flags = set()
+                    if enforceP2SH:
+                        flags.add(SCRIPT_VERIFY_P2SH)
 
-            for i in range(len(tx.vin)):
-                flags = set()
-                if enforceP2SH:
-                    flags.add(SCRIPT_VERIFY_P2SH)
+                    VerifyScript(tx.vin[i].scriptSig,
+                                 prevouts[tx.vin[i].prevout],
+                                 tx,
+                                 i,
+                                 flags=flags)
 
-                VerifyScript(tx.vin[i].scriptSig,
-                             prevouts[tx.vin[i].prevout],
-                             tx,
-                             i,
-                             flags=flags)
+
 
     def test_tx_invalid(self):
         for prevouts, tx, enforceP2SH in load_test_vectors('tx_invalid.json'):

@@ -85,8 +85,9 @@ class P2SHBitcoinAddress(CBitcoinAddress):
             nVersion = bitcoin.params.BASE58_PREFIXES['SCRIPT_ADDR']
 
         elif nVersion != bitcoin.params.BASE58_PREFIXES['SCRIPT_ADDR']:
-            raise ValueError('nVersion incorrect for P2SH address: got %d; expected %d' % \
-                                (nVersion, bitcoin.params.BASE58_PREFIXES['SCRIPT_ADDR']))
+            raise ValueError(
+                    'nVersion incorrect for P2SH address: got %d; expected %d' %
+                    (nVersion, bitcoin.params.BASE58_PREFIXES['SCRIPT_ADDR']))
 
         return super(P2SHBitcoinAddress, cls).from_bytes(data, nVersion)
 
@@ -126,7 +127,7 @@ class P2PKHBitcoinAddress(CBitcoinAddress):
             nVersion = bitcoin.params.BASE58_PREFIXES['PUBKEY_ADDR']
 
         elif nVersion != bitcoin.params.BASE58_PREFIXES['PUBKEY_ADDR']:
-            raise ValueError('nVersion incorrect for P2PKH address: got %d; expected %d' % \
+            raise ValueError('nVersion incorrect for P2PKH address: got %d; expected %d' %
                                 (nVersion, bitcoin.params.BASE58_PREFIXES['PUBKEY_ADDR']))
 
         return super(P2PKHBitcoinAddress, cls).from_bytes(data, nVersion)
@@ -173,8 +174,7 @@ class P2PKHBitcoinAddress(CBitcoinAddress):
                 scriptPubKey)  # in case it's not a CScript instance yet
 
             try:
-                scriptPubKey = script.CScript(tuple(scriptPubKey)
-                                             )  # canonicalize
+                scriptPubKey = script.CScript(tuple(scriptPubKey))  # canonicalize
             except bitcoin.core.script.CScriptInvalidError:
                 raise CBitcoinAddressError(
                     'not a P2PKH scriptPubKey: script is invalid')
@@ -240,11 +240,11 @@ class CKey(object):
     def is_compressed(self):
         return self.pub.is_compressed
 
-    def sign(self, hash):
-        return self._cec_key.sign(hash)
+    def sign(self, _hash):
+        return self._cec_key.sign(_hash)
 
-    def sign_compact(self, hash):
-        return self._cec_key.sign_compact(hash)
+    def sign_compact(self, _hash):
+        return self._cec_key.sign_compact(_hash)
 
 
 class CBitcoinSecretError(bitcoin.base58.Base58Error):
@@ -262,10 +262,11 @@ class CBitcoinSecret(bitcoin.base58.CBase58Data, CKey):
         self.__init__(None)
         return self
 
-    def __init__(self, s):
+    def __init__(self, _):
         if self.nVersion != bitcoin.params.BASE58_PREFIXES['SECRET_KEY']:
-            raise CBitcoinSecretError('Not a base58-encoded secret key: got nVersion=%d; expected nVersion=%d' % \
-                                      (self.nVersion, bitcoin.params.BASE58_PREFIXES['SECRET_KEY']))
+            raise CBitcoinSecretError(
+                    'Not a base58-encoded secret key: got nVersion={}; expected nVersion={}'.format(
+                    self.nVersion, bitcoin.params.BASE58_PREFIXES['SECRET_KEY']))
 
         CKey.__init__(self, self[0:32], len(self) > 32 and _bord(self[32]) == 1)
 

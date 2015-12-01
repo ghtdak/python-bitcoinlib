@@ -28,7 +28,6 @@ def load_test_vectors(name):
 
             (comment, fHeader, fCheckPoW, cur_time, serialized_blk) = test_case
 
-            blk = None
             if fHeader:
                 blk = CBlockHeader.deserialize(x(serialized_blk))
             else:
@@ -62,7 +61,7 @@ class Test_CheckBlock(unittest.TestCase):
                                      cur_time=cur_time)
                 else:
                     CheckBlock(blk, fCheckPoW=fCheckPoW, cur_time=cur_time)
-            except ValidationError as err:
-                continue
-
-            self.fail('Invalid block "%s" passed checks' % comment)
+            except ValidationError:
+                pass
+            else:
+                self.fail('Invalid block "%s" passed checks' % comment)

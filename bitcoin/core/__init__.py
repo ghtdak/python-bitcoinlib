@@ -134,12 +134,12 @@ class COutPoint(ImmutableSerializable):
     """The combination of a transaction hash and an index n into its vout"""
     __slots__ = ['hash', 'n']
 
-    def __init__(self, hash=b'\x00' * 32, n=0xffffffff):
-        if not len(hash) == 32:
+    def __init__(self, _hash=b'\x00' * 32, n=0xffffffff):
+        if not len(_hash) == 32:
             raise ValueError(
                 'COutPoint: hash must be exactly 32 bytes; got %d bytes' %
-                len(hash))
-        object.__setattr__(self, 'hash', hash)
+                len(_hash))
+        object.__setattr__(self, 'hash', _hash)
         if not (0 <= n <= 0xffffffff):
             raise ValueError(
                 'COutPoint: n must be in range 0x0 to 0xffffffff; got %x' % n)
@@ -147,9 +147,9 @@ class COutPoint(ImmutableSerializable):
 
     @classmethod
     def stream_deserialize(cls, f):
-        hash = ser_read(f, 32)
+        _hash = ser_read(f, 32)
         n = struct.unpack(b"<I", ser_read(f, 4))[0]
-        return cls(hash, n)
+        return cls(_hash, n)
 
     def stream_serialize(self, f):
         assert len(self.hash) == 32
@@ -157,7 +157,7 @@ class COutPoint(ImmutableSerializable):
         f.write(struct.pack(b"<I", self.n))
 
     def is_null(self):
-        return ((self.hash == b'\x00' * 32) and (self.n == 0xffffffff))
+        return (self.hash == b'\x00' * 32) and (self.n == 0xffffffff)
 
     def __repr__(self):
         if self.is_null():
@@ -227,7 +227,7 @@ class CTxIn(ImmutableSerializable):
         f.write(struct.pack(b"<I", self.nSequence))
 
     def is_final(self):
-        return (self.nSequence == 0xffffffff)
+        return self.nSequence == 0xffffffff
 
     def __repr__(self):
         return "CTxIn(%s, %s, 0x%x)" % (repr(self.prevout),
@@ -255,6 +255,7 @@ class CMutableTxIn(CTxIn):
     __slots__ = []
 
     def __init__(self, prevout=None, scriptSig=CScript(), nSequence=0xffffffff):
+        super().__init__(prevout, scriptSig, nSequence)
         if not (0 <= nSequence <= 0xffffffff):
             raise ValueError(
                 'CTxIn: nSequence must be an integer between 0x0 and 0xffffffff; got %x'
@@ -360,15 +361,15 @@ class CTransaction(ImmutableSerializable):
     @classmethod
     def stream_deserialize(cls, f):
         nVersion = struct.unpack(b"<i", ser_read(f, 4))[0]
-        vin = VectorSerializer.stream_deserialize(CTxIn, f)
-        vout = VectorSerializer.stream_deserialize(CTxOut, f)
+        vin = VectorSerializer.stream_deserialize2(CTxIn, f)
+        vout = VectorSerializer.stream_deserialize2(CTxOut, f)
         nLockTime = struct.unpack(b"<I", ser_read(f, 4))[0]
         return cls(vin, vout, nLockTime, nVersion)
 
     def stream_serialize(self, f):
         f.write(struct.pack(b"<i", self.nVersion))
-        VectorSerializer.stream_serialize(CTxIn, self.vin, f)
-        VectorSerializer.stream_serialize(CTxOut, self.vout, f)
+        VectorSerializer.stream_serialize2(CTxIn, self.vin, f)
+        VectorSerializer.stream_serialize2(CTxOut, self.vout, f)
         f.write(struct.pack(b"<I", self.nLockTime))
 
     def is_coinbase(self):
@@ -398,6 +399,7 @@ class CMutableTransaction(CTransaction):
     __slots__ = []
 
     def __init__(self, vin=None, vout=None, nLockTime=0, nVersion=1):
+        # todo: superclass call inconsistent with defaults
         if not (0 <= nLockTime <= 0xffffffff):
             raise ValueError(
                 'CTransaction: nLockTime must be in range 0x0 to 0xffffffff; got %x'
@@ -558,7 +560,7 @@ class CBlock(CBlockHeader):
     def stream_deserialize(cls, f):
         self = super(CBlock, cls).stream_deserialize(f)
 
-        vtx = VectorSerializer.stream_deserialize(CTransaction, f)
+        vtx = VectorSerializer.stream_deserialize2(CTransaction, f)
         vMerkleTree = tuple(CBlock.build_merkle_tree_from_txs(vtx))
         object.__setattr__(self, 'vMerkleTree', vMerkleTree)
         object.__setattr__(self, 'vtx', tuple(vtx))
@@ -567,7 +569,7 @@ class CBlock(CBlockHeader):
 
     def stream_serialize(self, f):
         super(CBlock, self).stream_serialize(f)
-        VectorSerializer.stream_serialize(CTransaction, self.vtx, f)
+        VectorSerializer.stream_serialize2(CTransaction, self.vtx, f)
 
     def get_header(self):
         """Return the block header
@@ -631,7 +633,7 @@ class CoreRegTestParams(CoreTestNetParams):
 coreparams = CoreMainParams()
 
 
-def _SelectCoreParams(name):
+def SelectCoreParams(name):
     """Select the core chain parameters to use
 
     Don't use this directly, use bitcoin.SelectParams() instead so both
@@ -709,7 +711,7 @@ class CheckProofOfWorkError(CheckBlockHeaderError):
     pass
 
 
-def CheckProofOfWork(hash, nBits):
+def CheckProofOfWork(_hash, nBits):
     """Check a proof-of-work
 
     Raises CheckProofOfWorkError
@@ -722,8 +724,8 @@ def CheckProofOfWork(hash, nBits):
             "CheckProofOfWork() : nBits below minimum work")
 
     # Check proof of work matches claimed amount
-    hash = uint256_from_str(hash)
-    if hash > target:
+    _hash = uint256_from_str(_hash)
+    if _hash > target:
         raise CheckProofOfWorkError(
             "CheckProofOfWork() : hash doesn't match nBits")
 

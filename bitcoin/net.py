@@ -47,7 +47,7 @@ class CAddress(Serializable):
 
         if bytes(packedIP[0:12]) == IPV4_COMPAT:  # IPv4
             c.ip = socket.inet_ntop(socket.AF_INET, packedIP[12:16])
-        else:  #IPv6
+        else:  # IPv6
             c.ip = socket.inet_ntop(socket.AF_INET6, packedIP)
 
         c.port = struct.unpack(b">H", ser_read(f, 2))[0]

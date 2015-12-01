@@ -38,6 +38,8 @@ class OpenSSLException(EnvironmentError):
 
 # Thx to Sam Devlin for the ctypes magic 64-bit fix (FIXME: should this
 # be applied to every OpenSSL call whose return type is a pointer?)
+# todo: sup with the unused args?
+# noinspection PyUnusedLocal,PyUnusedLocal
 def _check_res_void_p(val, func, args):  # pylint: disable=unused-argument
     if val == 0:
         errno = _ssl.ERR_get_error()
@@ -201,8 +203,7 @@ _ssl.i2o_ECPublicKey.restype = ctypes.c_void_p
 _ssl.i2o_ECPublicKey.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
 _ssl.o2i_ECPublicKey.restype = ctypes.c_void_p
-_ssl.o2i_ECPublicKey.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_long
-                                ]
+_ssl.o2i_ECPublicKey.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_long]
 
 # this specifies the curve used with ECDSA.
 _NID_secp256k1 = 714  # from openssl/obj_mac.h
@@ -224,6 +225,7 @@ class CECKey:
 
     def __init__(self):
         self.k = _ssl.EC_KEY_new_by_curve_name(_NID_secp256k1)
+        self.mb = None
 
     def __del__(self):
         if _ssl:
@@ -285,17 +287,17 @@ class CECKey:
         r = self.get_raw_ecdh_key(other_pubkey)
         return kdf(r)
 
-    def sign(self, hash):  # pylint: disable=redefined-builtin
-        if not isinstance(hash, bytes):
+    def sign(self, _hash):  # pylint: disable=redefined-builtin
+        if not isinstance(_hash, bytes):
             raise TypeError('Hash must be bytes instance; got %r' %
-                            hash.__class__)
-        if len(hash) != 32:
+                            _hash.__class__)
+        if len(_hash) != 32:
             raise ValueError('Hash must be exactly 32 bytes long')
 
         sig_size0 = ctypes.c_uint32()
         sig_size0.value = _ssl.ECDSA_size(self.k)
         mb_sig = ctypes.create_string_buffer(sig_size0.value)
-        result = _ssl.ECDSA_sign(0, hash, len(hash), mb_sig,
+        result = _ssl.ECDSA_sign(0, _hash, len(_hash), mb_sig,
                                  ctypes.byref(sig_size0), self.k)
         assert 1 == result
         if bitcoin.core.script.IsLowDERSignature(mb_sig.raw[:sig_size0.value]):
@@ -303,17 +305,17 @@ class CECKey:
         else:
             return self.signature_to_low_s(mb_sig.raw[:sig_size0.value])
 
-    def sign_compact(self, hash):  # pylint: disable=redefined-builtin
-        if not isinstance(hash, bytes):
+    def sign_compact(self, _hash):  # pylint: disable=redefined-builtin
+        if not isinstance(_hash, bytes):
             raise TypeError('Hash must be bytes instance; got %r' %
-                            hash.__class__)
-        if len(hash) != 32:
+                            _hash.__class__)
+        if len(_hash) != 32:
             raise ValueError('Hash must be exactly 32 bytes long')
 
         sig_size0 = ctypes.c_uint32()
         sig_size0.value = _ssl.ECDSA_size(self.k)
         mb_sig = ctypes.create_string_buffer(sig_size0.value)
-        result = _ssl.ECDSA_sign(0, hash, len(hash), mb_sig,
+        result = _ssl.ECDSA_sign(0, _hash, len(_hash), mb_sig,
                                  ctypes.byref(sig_size0), self.k)
         assert 1 == result
 
@@ -345,7 +347,7 @@ class CECKey:
             cec_key = CECKey()
             cec_key.set_compressed(True)
 
-            result = cec_key.recover(r_val, s_val, hash, len(hash), i, 1)
+            result = cec_key.recover(r_val, s_val, _hash, len(_hash), i, 1)
             if result == 1:
                 if cec_key.get_pubkey() == pubkey.get_pubkey():
                     return r_val + s_val, i
@@ -384,7 +386,7 @@ class CECKey:
 
         return new_sig.raw
 
-    def verify(self, hash, sig):  # pylint: disable=redefined-builtin
+    def verify(self, _hash, sig):  # pylint: disable=redefined-builtin
         """Verify a DER signature"""
         if not sig:
             return False
@@ -405,7 +407,7 @@ class CECKey:
         _ssl.ECDSA_SIG_free(norm_sig)
 
         # -1 = error, 0 = bad sig, 1 = good
-        return _ssl.ECDSA_verify(0, hash, len(hash), norm_der, derlen,
+        return _ssl.ECDSA_verify(0, _hash, len(_hash), norm_der, derlen,
                                  self.k) == 1
 
     def set_compressed(self, compressed):
@@ -541,7 +543,7 @@ class CPubKey(bytes):
         return self
 
     @classmethod
-    def recover_compact(cls, hash, sig):  # pylint: disable=redefined-builtin
+    def recover_compact(cls, _hash, sig):  # pylint: disable=redefined-builtin
         """Recover a public key from a compact signature."""
         if len(sig) != 65:
             raise ValueError("Signature should be 65 characters, not [%d]" %
@@ -556,7 +558,7 @@ class CPubKey(bytes):
         sigR = sig[1:33]
         sigS = sig[33:65]
 
-        result = cec_key.recover(sigR, sigS, hash, len(hash), recid, 0)
+        result = cec_key.recover(sigR, sigS, _hash, len(_hash), recid, 0)
 
         if result < 1:
             return False
@@ -573,8 +575,8 @@ class CPubKey(bytes):
     def is_compressed(self):
         return len(self) == 33
 
-    def verify(self, hash, sig):  # pylint: disable=redefined-builtin
-        return self._cec_key.verify(hash, sig)
+    def verify(self, _hash, sig):  # pylint: disable=redefined-builtin
+        return self._cec_key.verify(_hash, sig)
 
     def __str__(self):
         return repr(self)

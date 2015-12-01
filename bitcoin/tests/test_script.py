@@ -12,7 +12,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
-import os
 
 from bitcoin.core import b2x, x
 from bitcoin.core.script import *
@@ -243,8 +242,7 @@ class Test_CScript(unittest.TestCase):
         T(CScript([1, 2, 3]), 'CScript([1, 2, 3])')
 
         T(
-            CScript([1, x('7ac977d8373df875eceda362298e5d09d4b72b53'), OP_DROP
-                    ]),
+            CScript([1, x('7ac977d8373df875eceda362298e5d09d4b72b53'), OP_DROP]),
             "CScript([1, x('7ac977d8373df875eceda362298e5d09d4b72b53'), OP_DROP])")
 
         T(

@@ -39,8 +39,8 @@ def MurmurHash3(nHashSeed, vDataToHash):
 
     # body
     i = 0
-    while i < len(vDataToHash) - len(vDataToHash) % 4 \
-          and len(vDataToHash) - i >= 4:
+    while (i < len(vDataToHash) - len(vDataToHash) % 4 and
+                       len(vDataToHash) - i >= 4):
 
         k1 = struct.unpack(b"<L", vDataToHash[i:i + 4])[0]
 
@@ -165,7 +165,7 @@ class CBloomFilter(bitcoin.core.serialize.Serializable):
         return len(
             self.vData) <= self.MAX_BLOOM_FILTER_SIZE and self.nHashFuncs <= self.MAX_HASH_FUNCS
 
-    def IsRelevantAndUpdate(tx, tx_hash):
+    def IsRelevantAndUpdate(self, tx_hash):
         # Not useful for a client, so not implemented yet.
         raise NotImplementedError
 

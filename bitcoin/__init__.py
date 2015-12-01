@@ -58,7 +58,7 @@ class RegTestParams(bitcoin.core.CoreRegTestParams):
 However, don't set this directly, use SelectParams() instead so as to set the
 bitcoin.core.params correctly too.
 """
-#params = bitcoin.core.coreparams = MainParams()
+# params = bitcoin.core.coreparams = MainParams()
 params = MainParams()
 
 
@@ -70,7 +70,7 @@ def SelectParams(name):
     Default chain is 'mainnet'
     """
     global params
-    bitcoin.core._SelectCoreParams(name)
+    bitcoin.core.SelectCoreParams(name)
     if name == 'mainnet':
         params = bitcoin.core.coreparams = MainParams()
     elif name == 'testnet':

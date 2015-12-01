@@ -28,6 +28,7 @@ import ssl
 try:
     import http.client as httplib
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import httplib
 import base64
 import binascii
@@ -39,6 +40,7 @@ import sys
 try:
     import urllib.parse as urlparse
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import urlparse
 
 import bitcoin
@@ -245,13 +247,11 @@ class RawProxy(BaseProxy):
                  service_url=None,
                  service_port=None,
                  btc_conf_file=None,
-                 timeout=DEFAULT_HTTP_TIMEOUT,
-                 **kwargs):
+                 timeout=DEFAULT_HTTP_TIMEOUT):
         super(RawProxy, self).__init__(service_url=service_url,
                                        service_port=service_port,
                                        btc_conf_file=btc_conf_file,
-                                       timeout=timeout,
-                                       **kwargs)
+                                       timeout=timeout)
 
     def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
@@ -281,8 +281,7 @@ class Proxy(BaseProxy):
                  service_url=None,
                  service_port=None,
                  btc_conf_file=None,
-                 timeout=DEFAULT_HTTP_TIMEOUT,
-                 **kwargs):
+                 timeout=DEFAULT_HTTP_TIMEOUT):
         """Create a proxy object
 
         If ``service_url`` is not specified, the username and password are read
@@ -300,8 +299,7 @@ class Proxy(BaseProxy):
         super(Proxy, self).__init__(service_url=service_url,
                                     service_port=service_port,
                                     btc_conf_file=btc_conf_file,
-                                    timeout=timeout,
-                                    **kwargs)
+                                    timeout=timeout)
 
     def call(self, service_name, *args):
         """Call an RPC method by name and raw (JSON encodable) arguments"""
@@ -420,7 +418,6 @@ class Proxy(BaseProxy):
         If account is not None, it is added to the address book so payments
         received with the address will be credited to account.
         """
-        r = None
         if account is not None:
             r = self._call('getnewaddress', account)
         else:
@@ -543,7 +540,6 @@ class Proxy(BaseProxy):
         confirmations, optionally filtered to only include txouts paid to
         addresses in addrs.
         """
-        r = None
         if addrs is None:
             r = self._call('listunspent', minconf, maxconf)
         else:
@@ -576,7 +572,6 @@ class Proxy(BaseProxy):
         allowhighfees - Allow even if fees are unreasonably high.
         """
         hextx = hexlify(tx.serialize())
-        r = None
         if allowhighfees:
             r = self._call('sendrawtransaction', hextx, True)
         else:

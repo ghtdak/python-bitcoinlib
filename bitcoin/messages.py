@@ -20,12 +20,13 @@ import time
 import sys
 
 if sys.version > '3':
-    _bchr = lambda x: bytes([x])
-    _bord = lambda x: x[0]
+    _bchr = lambda _x: bytes([_x])
+    _bord = lambda _x: _x[0]
     from io import BytesIO as _BytesIO
 else:
     _bchr = chr
     _bord = ord
+    # noinspection PyUnresolvedReferences
     from cStringIO import StringIO as _BytesIO
 
 # Bad practice, so we have a __all__ at the end; this should be cleaned up
@@ -97,12 +98,11 @@ class MsgSerializable(Serializable):
         h = hashlib.sha256(th).digest()
         if checksum != h[:4]:
             raise ValueError("got bad checksum %s" % repr(recvbuf))
-            recvbuf = recvbuf[4 + 12 + 4 + 4 + msglen:]
 
         if command in messagemap:
-            cls = messagemap[command]
+            _cls = messagemap[command]
             #        print("Going to deserialize '%s'" % msg)
-            return cls.msg_deser(_BytesIO(msg))
+            return _cls.msg_deser(_BytesIO(msg))
         else:
             print("Command '%s' not in messagemap" % repr(command))
             return None
@@ -196,11 +196,11 @@ class msg_addr(MsgSerializable):
     @classmethod
     def msg_deser(cls, f, protover=PROTO_VERSION):
         c = cls()
-        c.addrs = VectorSerializer.stream_deserialize(CAddress, f)
+        c.addrs = VectorSerializer.stream_deserialize2(CAddress, f)
         return c
 
     def msg_ser(self, f):
-        VectorSerializer.stream_serialize(CAddress, self.addrs, f)
+        VectorSerializer.stream_serialize2(CAddress, self.addrs, f)
 
     def __repr__(self):
         return "msg_addr(addrs=%s)" % (repr(self.addrs))
@@ -236,11 +236,11 @@ class msg_inv(MsgSerializable):
     @classmethod
     def msg_deser(cls, f, protover=PROTO_VERSION):
         c = cls()
-        c.inv = VectorSerializer.stream_deserialize(CInv, f)
+        c.inv = VectorSerializer.stream_deserialize2(CInv, f)
         return c
 
     def msg_ser(self, f):
-        VectorSerializer.stream_serialize(CInv, self.inv, f)
+        VectorSerializer.stream_serialize2(CInv, self.inv, f)
 
     def __repr__(self):
         return "msg_inv(inv=%s)" % (repr(self.inv))
@@ -256,11 +256,11 @@ class msg_getdata(MsgSerializable):
     @classmethod
     def msg_deser(cls, f, protover=PROTO_VERSION):
         c = cls()
-        c.inv = VectorSerializer.stream_deserialize(CInv, f)
+        c.inv = VectorSerializer.stream_deserialize2(CInv, f)
         return c
 
     def msg_ser(self, f):
-        VectorSerializer.stream_serialize(CInv, self.inv, f)
+        VectorSerializer.stream_serialize2(CInv, self.inv, f)
 
     def __repr__(self):
         return "msg_getdata(inv=%s)" % (repr(self.inv))
@@ -276,11 +276,11 @@ class msg_notfound(MsgSerializable):
     @classmethod
     def msg_deser(cls, f, protover=PROTO_VERSION):
         c = cls()
-        c.inv = VectorSerializer.stream_deserialize(CInv, f)
+        c.inv = VectorSerializer.stream_deserialize2(CInv, f)
         return c
 
     def msg_ser(self, f):
-        VectorSerializer.stream_serialize(CInv, self.inv, f)
+        VectorSerializer.stream_serialize2(CInv, self.inv, f)
 
     def __repr__(self):
         return "msg_notfound(inv=%s)" % (repr(self.inv))
@@ -344,11 +344,11 @@ class msg_headers(MsgSerializable):
     @classmethod
     def msg_deser(cls, f, protover=PROTO_VERSION):
         c = cls()
-        c.headers = VectorSerializer.stream_deserialize(CBlock, f)
+        c.headers = VectorSerializer.stream_deserialize2(CBlock, f)
         return c
 
     def msg_ser(self, f):
-        VectorSerializer.stream_serialize(CBlock, self.headers, f)
+        VectorSerializer.stream_serialize2(CBlock, self.headers, f)
 
     def __repr__(self):
         return "msg_headers(headers=%s)" % (repr(self.headers))

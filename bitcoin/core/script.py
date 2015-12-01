@@ -27,7 +27,7 @@ if sys.version > '3':
 import struct
 
 import bitcoin.core
-import bitcoin.core._bignum
+import bitcoin.core.b_bignum
 
 MAX_SCRIPT_SIZE = 10000
 MAX_SCRIPT_ELEMENT_SIZE = 520
@@ -103,8 +103,8 @@ class CScriptOp(int):
             return _opcode_instances[n]
 
 # Populate opcode instance table
-for n in range(0xff + 1):
-    CScriptOp(n)
+for nglobal in range(0xff + 1):
+    CScriptOp(nglobal)
 
 # push value
 OP_0 = CScriptOp(0x00)
@@ -527,7 +527,7 @@ class CScript(bytes):
                 other = bytes(_bchr(OP_1NEGATE))
             else:
                 other = CScriptOp.encode_op_pushdata(
-                    bitcoin.core._bignum.bn2vch(other))
+                    bitcoin.core.b_bignum.bn2vch(other))
         elif isinstance(other, (bytes, bytearray)):
             other = CScriptOp.encode_op_pushdata(other)
         return other
@@ -577,8 +577,6 @@ class CScript(bytes):
             if opcode > OP_PUSHDATA4:
                 yield (opcode, None, sop_idx)
             else:
-                datasize = None
-                pushdata_type = None
                 if opcode < OP_PUSHDATA1:
                     pushdata_type = 'PUSHDATA(%d)' % opcode
                     datasize = opcode
@@ -707,7 +705,7 @@ class CScript(bytes):
                 if op > OP_16:
                     continue
 
-                elif op < OP_PUSHDATA1 and op > OP_0 and len(
+                elif OP_PUSHDATA1 > op > OP_0 and len(
                         data) == 1 and _bord(data[0]) <= 16:
                     # Could have used an OP_n code, rather than a 1-byte push.
                     return False
@@ -730,7 +728,7 @@ class CScript(bytes):
 
     def is_unspendable(self):
         """Test if the script is provably unspendable"""
-        return (len(self) > 0 and _bord(self[0]) == OP_RETURN)
+        return len(self) > 0 and _bord(self[0]) == OP_RETURN
 
     def is_valid(self):
         """Return True if the script is valid, False otherwise
@@ -793,10 +791,10 @@ SIGHASH_SINGLE = 3
 SIGHASH_ANYONECANPAY = 0x80
 
 
+# noinspection PyUnboundLocalVariable
 def FindAndDelete(script, sig):
     """Consensus critical, see FindAndDelete() in Satoshi codebase"""
     r = b''
-    last_sop_idx = sop_idx = 0
     skip = True
     for (opcode, data, sop_idx) in script.raw_iter():
         if not skip:
@@ -835,8 +833,8 @@ def IsLowDERSignature(sig):
         0xdf, 0xe9, 0x2f, 0x46, 0x68, 0x1b, 0x20, 0xa0
     ]
 
-    return CompareBigEndian(s_val, [0]) > 0 and \
-      CompareBigEndian(s_val, max_mod_half_order) <= 0
+    return (CompareBigEndian(s_val, [0]) > 0 >=
+            CompareBigEndian(s_val, max_mod_half_order))
 
 
 def CompareBigEndian(c1, c2):
@@ -877,7 +875,7 @@ def RawSignatureHash(script, txTo, inIdx, hashtype):
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin)))
+        return HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin))
     txtmp = bitcoin.core.CMutableTransaction.from_tx(txTo)
 
     for txin in txtmp.vin:
@@ -916,9 +914,9 @@ def RawSignatureHash(script, txTo, inIdx, hashtype):
     s = txtmp.serialize()
     s += struct.pack(b"<I", hashtype)
 
-    hash = bitcoin.core.Hash(s)
+    _hash = bitcoin.core.Hash(s)
 
-    return (hash, None)
+    return _hash, None
 
 
 def SignatureHash(script, txTo, inIdx, hashtype):

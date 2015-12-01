@@ -42,8 +42,8 @@ class Test_Money(unittest.TestCase):
         self.assertFalse(MoneyRange(-1))
         self.assertTrue(MoneyRange(0))
         self.assertTrue(MoneyRange(100000))
-        self.assertTrue(MoneyRange(21000000 * COIN)
-                       )  # Maximum money on Bitcoin network
+        self.assertTrue(
+                MoneyRange(21000000 * COIN))  # Maximum money on Bitcoin network
         self.assertFalse(MoneyRange(21000001 * COIN))
 
     def test_MoneyRangeCustomParams(self):

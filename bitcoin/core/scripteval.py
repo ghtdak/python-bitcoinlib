@@ -15,9 +15,11 @@ unlikely to match Satoshi Bitcoin exactly. Think carefully before using this
 module.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
 
 import sys
+
 _bord = ord
 if sys.version > '3':
     long = int
@@ -26,7 +28,7 @@ if sys.version > '3':
 import hashlib
 
 import bitcoin.core
-import bitcoin.core._bignum
+import bitcoin.core.b_bignum
 import bitcoin.core.key
 import bitcoin.core.serialize
 
@@ -81,10 +83,9 @@ class EvalScriptError(bitcoin.core.ValidationError):
 
 
 class MaxOpCountError(EvalScriptError):
-
     def __init__(self, **kwargs):
         super(MaxOpCountError, self).__init__('max opcode count exceeded', **
-                                              kwargs)
+        kwargs)
 
 
 class MissingOpArgumentsError(EvalScriptError):
@@ -92,8 +93,8 @@ class MissingOpArgumentsError(EvalScriptError):
 
     def __init__(self, opcode, s, n, **kwargs):
         super(MissingOpArgumentsError, self).__init__(
-            'missing arguments for %s; need %d items, but only %d on stack' %
-            (OPCODE_NAMES[opcode], n, len(s)), **kwargs)
+                'missing arguments for %s; need %d items, but only %d on stack' %
+                (OPCODE_NAMES[opcode], n, len(s)), **kwargs)
 
 
 class ArgumentsInvalidError(EvalScriptError):
@@ -101,7 +102,7 @@ class ArgumentsInvalidError(EvalScriptError):
 
     def __init__(self, opcode, msg, **kwargs):
         super(ArgumentsInvalidError, self).__init__(
-            '%s args invalid: %s' % (OPCODE_NAMES[opcode], msg), **kwargs)
+                '%s args invalid: %s' % (OPCODE_NAMES[opcode], msg), **kwargs)
 
 
 class VerifyOpFailedError(EvalScriptError):
@@ -109,11 +110,11 @@ class VerifyOpFailedError(EvalScriptError):
 
     def __init__(self, opcode, **kwargs):
         super(VerifyOpFailedError, self).__init__(
-            '%s failed' % OPCODE_NAMES[opcode], **kwargs)
+                '%s failed' % OPCODE_NAMES[opcode], **kwargs)
 
 
 def _CastToBigNum(s, err_raiser):
-    v = bitcoin.core._bignum.vch2bn(s)
+    v = bitcoin.core.b_bignum.vch2bn(s)
     if len(s) > MAX_NUM_SIZE:
         raise err_raiser(EvalScriptError, 'CastToBigNum() : overflow')
     return v
@@ -129,8 +130,8 @@ def _CastToBool(s):
 
     return False
 
-
-def _CheckSig(sig, pubkey, script, txTo, inIdx, err_raiser):
+# todo: last parameter was unused - err_raiser
+def _CheckSig(sig, pubkey, script, txTo, inIdx, _):
     key = bitcoin.core.key.CECKey()
     key.set_pubkey(pubkey)
 
@@ -219,8 +220,9 @@ def _CheckMultiSig(opcode, script, stack, txTo, inIdx, err_raiser, nOpCount):
         else:
             stack.append(b"\x00")
 
+
 # OP_2MUL and OP_2DIV are *not* included in this list as they are disabled
-_ISA_UNOP = {OP_1ADD, OP_1SUB, OP_NEGATE, OP_ABS, OP_NOT, OP_0NOTEQUAL,}
+_ISA_UNOP = {OP_1ADD, OP_1SUB, OP_NEGATE, OP_ABS, OP_NOT, OP_0NOTEQUAL, }
 
 
 def _UnaryOp(opcode, stack, err_raiser):
@@ -250,9 +252,10 @@ def _UnaryOp(opcode, stack, err_raiser):
 
     else:
         raise AssertionError(
-            "Unknown unary opcode encountered; this should not happen")
+                "Unknown unary opcode encountered; this should not happen")
 
-    stack.append(bitcoin.core._bignum.bn2vch(bn))
+    stack.append(bitcoin.core.b_bignum.bn2vch(bn))
+
 
 # OP_LSHIFT and OP_RSHIFT are *not* included in this list as they are disabled
 _ISA_BINOP = {
@@ -336,11 +339,11 @@ def _BinOp(opcode, stack, err_raiser):
 
     else:
         raise AssertionError(
-            "Unknown binop opcode encountered; this should not happen")
+                "Unknown binop opcode encountered; this should not happen")
 
     stack.pop()
     stack.pop()
-    stack.append(bitcoin.core._bignum.bn2vch(bn))
+    stack.append(bitcoin.core.b_bignum.bn2vch(bn))
 
 
 def _CheckExec(vfExec):
@@ -402,9 +405,9 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
             if nOpCount[0] > MAX_SCRIPT_OPCODES:
                 err_raiser(MaxOpCountError)
 
-        def check_args(n):
-            if len(stack) < n:
-                err_raiser(MissingOpArgumentsError, sop, stack, n)
+        def check_args(_n):
+            if len(stack) < _n:
+                err_raiser(MissingOpArgumentsError, sop, stack, _n)
 
         if sop <= OP_PUSHDATA4:
             if len(sop_data) > MAX_SCRIPT_ELEMENT_SIZE:
@@ -420,7 +423,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
 
             if sop == OP_1NEGATE or ((sop >= OP_1) and (sop <= OP_16)):
                 v = sop - (OP_1 - 1)
-                stack.append(bitcoin.core._bignum.bn2vch(v))
+                stack.append(bitcoin.core.b_bignum.bn2vch(v))
 
             elif sop in _ISA_BINOP:
                 _BinOp(sop, stack, err_raiser)
@@ -512,7 +515,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
 
             elif sop == OP_DEPTH:
                 bn = len(stack)
-                stack.append(bitcoin.core._bignum.bn2vch(bn))
+                stack.append(bitcoin.core.b_bignum.bn2vch(bn))
 
             elif sop == OP_DROP:
                 check_args(1)
@@ -590,7 +593,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
                 check_args(2)
                 del stack[-2]
 
-            elif sop == OP_NOP or (sop >= OP_NOP1 and sop <= OP_NOP10):
+            elif sop == OP_NOP or (OP_NOP1 <= sop <= OP_NOP10):
                 pass
 
             elif sop == OP_OVER:
@@ -632,7 +635,7 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
             elif sop == OP_SIZE:
                 check_args(1)
                 bn = len(stack[-1])
-                stack.append(bitcoin.core._bignum.bn2vch(bn))
+                stack.append(bitcoin.core.b_bignum.bn2vch(bn))
 
             elif sop == OP_SHA1:
                 check_args(1)
@@ -715,12 +718,12 @@ def EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
         _EvalScript(stack, scriptIn, txTo, inIdx, flags=flags)
     except CScriptInvalidError as err:
         raise EvalScriptError(
-            repr(err),
-            stack=stack,
-            scriptIn=scriptIn,
-            txTo=txTo,
-            inIdx=inIdx,
-            flags=flags)
+                repr(err),
+                stack=stack,
+                scriptIn=scriptIn,
+                txTo=txTo,
+                inIdx=inIdx,
+                flags=flags)
 
 
 class VerifyScriptError(bitcoin.core.ValidationError):
@@ -758,6 +761,7 @@ def VerifyScript(scriptSig, scriptPubKey, txTo, inIdx, flags=()):
         # stackCopy cannot be empty here, because if it was the
         # P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
         # an empty stack and the EvalScript above would return false.
+        # noinspection PyUnboundLocalVariable
         assert len(stackCopy)
 
         pubKey2 = CScript(stackCopy.pop())
@@ -766,7 +770,7 @@ def VerifyScript(scriptSig, scriptPubKey, txTo, inIdx, flags=()):
 
         if not len(stackCopy):
             raise VerifyScriptError(
-                "P2SH inner scriptPubKey left an empty stack")
+                    "P2SH inner scriptPubKey left an empty stack")
 
         if not _CastToBool(stackCopy[-1]):
             raise VerifyScriptError("P2SH inner scriptPubKey returned false")

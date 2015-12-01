@@ -28,6 +28,7 @@ if sys.version > '3':
 else:
     _bchr = chr
     _bord = ord
+    # noinspection PyUnresolvedReferences,PyUnresolvedReferences
     from cStringIO import StringIO as _BytesIO
 
 MAX_SIZE = 0x02000000
@@ -248,13 +249,23 @@ class VectorSerializer(Serializer):
     """Base class for serializers of object vectors"""
 
     @classmethod
-    def stream_serialize(cls, inner_cls, objs, f):
+    def stream_deserialize(cls, f):
+        super().stream_deserialize(f)
+
+    @classmethod
+    def stream_serialize(cls, obj, f):
+        super().stream_serialize(obj, f)
+
+
+    # todo: no idea here.  wrong number of arguments.  usages are weird
+    @classmethod
+    def stream_serialize2(cls, inner_cls, objs, f):
         VarIntSerializer.stream_serialize(len(objs), f)
         for obj in objs:
             inner_cls.stream_serialize(obj, f)
 
     @classmethod
-    def stream_deserialize(cls, inner_cls, f):
+    def stream_deserialize2(cls, inner_cls, f):
         n = VarIntSerializer.stream_deserialize(f)
         r = []
         for i in range(n):
@@ -340,12 +351,11 @@ def compact_from_uint256(v):
     """Convert uint256 to compact encoding
     """
     nbytes = (v.bit_length() + 7) >> 3
-    compact = 0
     if nbytes <= 3:
         compact = (v & 0xFFFFFF) << 8 * (3 - nbytes)
     else:
         compact = v >> 8 * (nbytes - 3)
-        compact = compact & 0xFFFFFF
+        compact &= 0xFFFFFF
 
     # If the sign bit (0x00800000) is set, divide the mantissa by 256 and
     # increase the exponent to get an encoding without it set.

@@ -28,8 +28,8 @@ from bitcoin.core.scripteval import *
 
 def parse_script(s):
 
-    def ishex(s):
-        return set(s).issubset(set('0123456789abcdefABCDEF'))
+    def ishex(_s):
+        return set(_s).issubset(set('0123456789abcdefABCDEF'))
 
     r = []
 

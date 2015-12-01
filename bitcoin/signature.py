@@ -19,6 +19,7 @@ import sys
 if sys.version > '3':
     from io import BytesIO as _BytesIO
 else:
+    # noinspection PyUnresolvedReferences,PyUnresolvedReferences
     from cStringIO import StringIO as _BytesIO
 
 

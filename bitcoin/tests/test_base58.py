@@ -58,7 +58,7 @@ class Test_CBase58Data(unittest.TestCase):
         invalids = ('',  # missing everything
                     '#',  # invalid character
                     '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNb',  # invalid checksum
-                   )
+                    )
 
         for invalid in invalids:
             msg = '%r should have raised InvalidBase58Error but did not' % invalid

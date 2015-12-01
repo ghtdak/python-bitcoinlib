@@ -44,8 +44,6 @@ for f in sys.argv[1:]:
         continue
 
 for digest in digests:
-    txouts = []
-
     unspent = sorted(proxy.listunspent(0), key=lambda x: hash(x['amount']))
 
     txins = [CTxIn(unspent[-1]['outpoint'])]
