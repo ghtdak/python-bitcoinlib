@@ -698,7 +698,7 @@ class CScript(bytes):
                 if op > OP_16:
                     continue
 
-                elif op < OP_PUSHDATA1 and op > OP_0 and len(data) == 1 and _bord(data[0]) <= 16:
+                elif OP_PUSHDATA1 > op > OP_0 and len(data) == 1 and _bord(data[0]) <= 16:
                     # Could have used an OP_n code, rather than a 1-byte push.
                     return False
 
@@ -817,8 +817,9 @@ def IsLowDERSignature(sig):
       0x5d,0x57,0x6e,0x73,0x57,0xa4,0x50,0x1d,
       0xdf,0xe9,0x2f,0x46,0x68,0x1b,0x20,0xa0]
 
-    return CompareBigEndian(s_val, [0]) > 0 and \
-      CompareBigEndian(s_val, max_mod_half_order) <= 0
+    return CompareBigEndian(s_val, [0]) > 0 >= CompareBigEndian(
+        s_val, max_mod_half_order)
+
 
 def CompareBigEndian(c1, c2):
     """

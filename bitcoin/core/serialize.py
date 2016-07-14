@@ -29,6 +29,7 @@ if sys.version > '3':
 else:
     _bchr = chr
     _bord = ord
+    # noinspection PyUnresolvedReferences
     from cStringIO import StringIO as _BytesIO
 
 MAX_SIZE = 0x02000000
@@ -331,7 +332,7 @@ def compact_from_uint256(v):
         compact = (v & 0xFFFFFF) << 8 * (3 - nbytes)
     else:
         compact = v >> 8 * (nbytes - 3)
-        compact = compact & 0xFFFFFF
+        compact &= 0xFFFFFF
 
     # If the sign bit (0x00800000) is set, divide the mantissa by 256 and
     # increase the exponent to get an encoding without it set.

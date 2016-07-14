@@ -95,7 +95,6 @@ class MsgSerializable(Serializable):
         h = hashlib.sha256(th).digest()
         if checksum != h[:4]:
             raise ValueError("got bad checksum %s" % repr(recvbuf))
-            recvbuf = recvbuf[4+12+4+4+msglen:]
 
         if command in messagemap:
             cls = messagemap[command]
@@ -148,7 +147,7 @@ class msg_version(MsgSerializable):
             c.strSubVer = None
             c.nStartingHeight = None
         return c
- 
+
     def msg_ser(self, f):
         f.write(struct.pack(b"<i", self.nVersion))
         f.write(struct.pack(b"<Q", self.nServices))

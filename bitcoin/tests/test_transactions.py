@@ -125,16 +125,16 @@ class Test_CTransaction(unittest.TestCase):
             try:
                 CheckTransaction(tx)
             except CheckTransactionError:
-                self.fail('tx failed CheckTransaction(): ' \
-                        + str((prevouts, b2x(tx.serialize()), enforceP2SH)))
-                continue
+                self.fail('tx failed CheckTransaction(): ' + str((
+                    prevouts, b2x(tx.serialize()), enforceP2SH)))
 
             for i in range(len(tx.vin)):
                 flags = set()
                 if enforceP2SH:
                     flags.add(SCRIPT_VERIFY_P2SH)
 
-                VerifyScript(tx.vin[i].scriptSig, prevouts[tx.vin[i].prevout], tx, i, flags=flags)
+                VerifyScript(tx.vin[i].scriptSig, prevouts[tx.vin[i].prevout],
+                             tx, i, flags=flags)
 
 
     def test_tx_invalid(self):

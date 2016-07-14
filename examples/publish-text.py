@@ -113,7 +113,7 @@ padded_lines = []
 prev_line = b'\x00'
 for line in raw_padded_lines:
     if len(prev_line) + len(line) <= MAX_SCRIPT_ELEMENT_SIZE:
-        prev_line = prev_line + line[1:]
+        prev_line += line[1:]
 
     else:
         padded_lines.append(prev_line)
