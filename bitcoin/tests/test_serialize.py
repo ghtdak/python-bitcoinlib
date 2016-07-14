@@ -136,9 +136,8 @@ class Test_Compact(unittest.TestCase):
 
 class Test_Uint256_Serialize(unittest.TestCase):
     def test_fixed(self):
-        values = []
-        values.append(0)
-        values.append(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+        values = [0,
+                  0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]
         for x in range(100):
             values.append(random.getrandbits(256))
         for n in values:

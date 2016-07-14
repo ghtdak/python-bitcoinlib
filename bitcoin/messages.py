@@ -28,11 +28,10 @@ else:
     _bord = ord
     from cStringIO import StringIO as _BytesIO
 
-# Bad practice, so we have a __all__ at the end; this should be cleaned up
-# later.
-from bitcoin.core import *
-from bitcoin.core.serialize import *
-from bitcoin.net import *
+from bitcoin.core import b2x, CBlock, CTransaction, Serializable, ser_read, \
+    VarStringSerializer, VectorSerializer
+from bitcoin.net import PROTO_VERSION, CAddress, CAlert, CInv, CBlockLocator
+
 import bitcoin
 
 MSG_TX = 1
