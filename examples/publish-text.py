@@ -34,7 +34,6 @@ if sys.version_info.major < 3:
     sys.exit(1)
 
 import argparse
-import hashlib
 import logging
 import sys
 import os
@@ -127,18 +126,18 @@ while padded_lines:
     def make_scripts(lines, n):
         # The n makes sure every p2sh addr is unique; the pubkey lets us
         # control the order the vin order vs. just using hashlocks.
-        redeemScript = []
+        _redeemScript = []
         for chunk in reversed(lines):
             if len(chunk) > MAX_SCRIPT_ELEMENT_SIZE:
                 parser.exit('Lines must be less than %d characters; got %d characters' %\
                                     (MAX_SCRIPT_ELEMENT_SIZE, len(chunk)))
-            redeemScript.extend([OP_HASH160, Hash160(chunk), OP_EQUALVERIFY])
-        redeemScript = CScript(redeemScript +
+            _redeemScript.extend([OP_HASH160, Hash160(chunk), OP_EQUALVERIFY])
+        _redeemScript = CScript(_redeemScript +
                                [args.privkey.pub, OP_CHECKSIGVERIFY,
                                 n, OP_DROP, # deduplicate push dropped to meet BIP62 rules
                                 OP_DEPTH, 0, OP_EQUAL]) # prevent scriptSig malleability
 
-        return CScript(lines) + redeemScript, redeemScript
+        return CScript(lines) + _redeemScript, _redeemScript
 
     scriptSig = redeemScript = None
     for i in range(len(padded_lines)):

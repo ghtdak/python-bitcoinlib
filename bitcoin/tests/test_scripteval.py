@@ -26,8 +26,8 @@ from bitcoin.core.script import *
 from bitcoin.core.scripteval import *
 
 def parse_script(s):
-    def ishex(s):
-        return set(s).issubset(set('0123456789abcdefABCDEF'))
+    def ishex(_s):
+        return set(_s).issubset(set('0123456789abcdefABCDEF'))
 
     r = []
 
@@ -92,7 +92,7 @@ class Test_EvalScript(unittest.TestCase):
         txSpend = CTransaction([CTxIn(COutPoint(txCredit.GetHash(), 0), scriptSig, nSequence=0xFFFFFFFF)],
                                [CTxOut(0, CScript())],
                                nLockTime=0)
-        return (txCredit, txSpend)
+        return txCredit, txSpend
 
     def test_script_valid(self):
         for scriptSig, scriptPubKey, flags, comment, test_case in load_test_vectors('script_valid.json'):

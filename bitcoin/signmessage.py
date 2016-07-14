@@ -28,9 +28,9 @@ if sys.version > '3':
 
 def VerifyMessage(address, message, sig):
     sig = base64.b64decode(sig)
-    hash = message.GetHash()
+    _hash = message.GetHash()
 
-    pubkey = CPubKey.recover_compact(hash, sig)
+    pubkey = CPubKey.recover_compact(_hash, sig)
 
     return str(P2PKHBitcoinAddress.from_pubkey(pubkey)) == str(address)
 

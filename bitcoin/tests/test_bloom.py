@@ -42,25 +42,25 @@ class Test_MurmurHash3(unittest.TestCase):
 
 class Test_CBloomFilter(unittest.TestCase):
     def test_create_insert_serialize(self):
-        filter = CBloomFilter(3, 0.01, 0, CBloomFilter.UPDATE_ALL)
+        _filter = CBloomFilter(3, 0.01, 0, CBloomFilter.UPDATE_ALL)
 
         def T(elem):
             """Filter contains elem"""
             elem = x(elem)
-            filter.insert(elem)
-            self.assertTrue(filter.contains(elem))
+            _filter.insert(elem)
+            self.assertTrue(_filter.contains(elem))
 
         def F(elem):
             """Filter does not contain elem"""
             elem = x(elem)
-            self.assertFalse(filter.contains(elem))
+            self.assertFalse(_filter.contains(elem))
 
         T('99108ad8ed9bb6274d3980bab5a85c048f0950c8')
         F('19108ad8ed9bb6274d3980bab5a85c048f0950c8')
         T('b5a2c786d9ef4658287ced5914b37a1b4aa32eee')
         T('b9300670b4c5366e95b2699e8b18bc75e5f729c5')
 
-        self.assertEqual(filter.serialize(), x('03614e9b050000000000000001'))
+        self.assertEqual(_filter.serialize(), x('03614e9b050000000000000001'))
         deserialized = CBloomFilter.deserialize(x('03614e9b050000000000000001'))
 
         self.assertTrue(deserialized.contains(x('99108ad8ed9bb6274d3980bab5a85c048f0950c8')))
@@ -70,33 +70,33 @@ class Test_CBloomFilter(unittest.TestCase):
 
     def test_create_insert_serialize_with_tweak(self):
         # Same test as bloom_create_insert_serialize, but we add a nTweak of 100
-        filter = CBloomFilter(3, 0.01, 2147483649, CBloomFilter.UPDATE_ALL)
+        _filter = CBloomFilter(3, 0.01, 2147483649, CBloomFilter.UPDATE_ALL)
 
         def T(elem):
             """Filter contains elem"""
             elem = x(elem)
-            filter.insert(elem)
-            self.assertTrue(filter.contains(elem))
+            _filter.insert(elem)
+            self.assertTrue(_filter.contains(elem))
 
         def F(elem):
             """Filter does not contain elem"""
             elem = x(elem)
-            self.assertFalse(filter.contains(elem))
+            self.assertFalse(_filter.contains(elem))
 
         T('99108ad8ed9bb6274d3980bab5a85c048f0950c8')
         F('19108ad8ed9bb6274d3980bab5a85c048f0950c8')
         T('b5a2c786d9ef4658287ced5914b37a1b4aa32eee')
         T('b9300670b4c5366e95b2699e8b18bc75e5f729c5')
 
-        self.assertEqual(filter.serialize(), x('03ce4299050000000100008001'))
+        self.assertEqual(_filter.serialize(), x('03ce4299050000000100008001'))
 
     def test_bloom_create_insert_key(self):
-        filter = CBloomFilter(2, 0.001, 0, CBloomFilter.UPDATE_ALL)
+        _filter = CBloomFilter(2, 0.001, 0, CBloomFilter.UPDATE_ALL)
 
         pubkey = x('045B81F0017E2091E2EDCD5EECF10D5BDD120A5514CB3EE65B8447EC18BFC4575C6D5BF415E54E03B1067934A0F0BA76B01C6B9AB227142EE1D543764B69D901E0')
         pubkeyhash = bitcoin.core.Hash160(pubkey)
 
-        filter.insert(pubkey)
-        filter.insert(pubkeyhash)
+        _filter.insert(pubkey)
+        _filter.insert(pubkeyhash)
 
-        self.assertEqual(filter.serialize(), x('038fc16b080000000000000001'))
+        self.assertEqual(_filter.serialize(), x('038fc16b080000000000000001'))

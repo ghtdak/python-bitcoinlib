@@ -23,8 +23,9 @@ import urllib2
 import payments_pb2
 o = payments_pb2
 
-import bitcoin
+#import bitcoin
 #bitcoin.SelectParams('testnet')
+
 from bitcoin.wallet import CBitcoinAddress
 from bitcoin.core.script import CScript
 from bitcoin.rpc import Proxy
@@ -66,18 +67,18 @@ def payment_request():
 
 
 def payment_ack(serialized_Payment_message):
-    """Generates a PaymentACK object, captures client refund address and returns a message"""
+    """Generates a PaymentACK object, captures client refund address and
+    returns a message """
 
     pao = o.PaymentACK()
     pao.payment.ParseFromString(serialized_Payment_message)
     pao.memo = 'String shown to user after payment confirmation'
 
-    refund_address = CBitcoinAddress.from_scriptPubKey(CScript(pao.payment.refund_to[0].script))
-
     sds_pa = pao.SerializeToString()
 
     open('sds_pa_blob', 'wb').write(sds_pa)
-    headers = {'Content-Type' : 'application/bitcoin-payment', 'Accept' : 'application/bitcoin-paymentack'}
+    headers = {'Content-Type' : 'application/bitcoin-payment',
+               'Accept' : 'application/bitcoin-paymentack'}
     http_response_object = urllib2.Request('file:sds_pa_blob', None, headers)
 
     return http_response_object

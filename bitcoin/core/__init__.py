@@ -123,19 +123,19 @@ class COutPoint(ImmutableSerializable):
     """The combination of a transaction hash and an index n into its vout"""
     __slots__ = ['hash', 'n']
 
-    def __init__(self, hash=b'\x00'*32, n=0xffffffff):
-        if not len(hash) == 32:
-            raise ValueError('COutPoint: hash must be exactly 32 bytes; got %d bytes' % len(hash))
-        object.__setattr__(self, 'hash', hash)
+    def __init__(self, _hash=b'\x00' * 32, n=0xffffffff):
+        if not len(_hash) == 32:
+            raise ValueError('COutPoint: hash must be exactly 32 bytes; got %d bytes' % len(_hash))
+        object.__setattr__(self, 'hash', _hash)
         if not (0 <= n <= 0xffffffff):
             raise ValueError('COutPoint: n must be in range 0x0 to 0xffffffff; got %x' % n)
         object.__setattr__(self, 'n', n)
 
     @classmethod
     def stream_deserialize(cls, f):
-        hash = ser_read(f,32)
+        _hash = ser_read(f,32)
         n = struct.unpack(b"<I", ser_read(f,4))[0]
-        return cls(hash, n)
+        return cls(_hash, n)
 
     def stream_serialize(self, f):
         assert len(self.hash) == 32
@@ -143,7 +143,7 @@ class COutPoint(ImmutableSerializable):
         f.write(struct.pack(b"<I", self.n))
 
     def is_null(self):
-        return ((self.hash == b'\x00'*32) and (self.n == 0xffffffff))
+        return (self.hash == b'\x00' * 32) and (self.n == 0xffffffff)
 
     def __repr__(self):
         if self.is_null():
@@ -206,7 +206,7 @@ class CTxIn(ImmutableSerializable):
         f.write(struct.pack(b"<I", self.nSequence))
 
     def is_final(self):
-        return (self.nSequence == 0xffffffff)
+        return self.nSequence == 0xffffffff
 
     def __repr__(self):
         return "CTxIn(%s, %s, 0x%x)" % (repr(self.prevout), repr(self.scriptSig), self.nSequence)
@@ -640,7 +640,7 @@ class CheckBlockHeaderError(ValidationError):
 class CheckProofOfWorkError(CheckBlockHeaderError):
     pass
 
-def CheckProofOfWork(hash, nBits):
+def CheckProofOfWork(_hash, nBits):
     """Check a proof-of-work
 
     Raises CheckProofOfWorkError
@@ -652,8 +652,8 @@ def CheckProofOfWork(hash, nBits):
         raise CheckProofOfWorkError("CheckProofOfWork() : nBits below minimum work")
 
     # Check proof of work matches claimed amount
-    hash = uint256_from_str(hash)
-    if hash > target:
+    _hash = uint256_from_str(_hash)
+    if _hash > target:
         raise CheckProofOfWorkError("CheckProofOfWork() : hash doesn't match nBits")
 
 

@@ -221,11 +221,11 @@ class CKey(object):
     def is_compressed(self):
         return self.pub.is_compressed
 
-    def sign(self, hash):
-        return self._cec_key.sign(hash)
+    def sign(self, _hash):
+        return self._cec_key.sign(_hash)
 
-    def sign_compact(self, hash):
-        return self._cec_key.sign_compact(hash)
+    def sign_compact(self, _hash):
+        return self._cec_key.sign_compact(_hash)
 
 class CBitcoinSecretError(bitcoin.base58.Base58Error):
     pass
@@ -241,7 +241,7 @@ class CBitcoinSecret(bitcoin.base58.CBase58Data, CKey):
         self.__init__(None)
         return self
 
-    def __init__(self, s):
+    def __init__(self, _):
         if self.nVersion != bitcoin.params.BASE58_PREFIXES['SECRET_KEY']:
             raise CBitcoinSecretError('Not a base58-encoded secret key: got nVersion=%d; expected nVersion=%d' % \
                                       (self.nVersion, bitcoin.params.BASE58_PREFIXES['SECRET_KEY']))

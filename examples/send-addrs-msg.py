@@ -8,12 +8,12 @@ PORT = 18333
 
 bitcoin.SelectParams('testnet')
 
-def version_pkt(client_ip, server_ip):
+def version_pkt(_client_ip, _server_ip):
     msg = msg_version()
     msg.nVersion = 70002
-    msg.addrTo.ip = server_ip
+    msg.addrTo.ip = _server_ip
     msg.addrTo.port = PORT
-    msg.addrFrom.ip = client_ip
+    msg.addrFrom.ip = _client_ip
     msg.addrFrom.port = PORT
 
     return msg

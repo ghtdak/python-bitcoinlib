@@ -56,15 +56,15 @@ class CScriptOp(int):
             raise ValueError("Data too long to encode in a PUSHDATA op")
 
     @staticmethod
-    def encode_op_n(n):
+    def encode_op_n(_n):
         """Encode a small integer op, returning an opcode"""
-        if not (0 <= n <= 16):
-            raise ValueError('Integer must be in range 0 <= n <= 16, got %d' % n)
+        if not (0 <= _n <= 16):
+            raise ValueError('Integer must be in range 0 <= n <= 16, got %d' % _n)
 
-        if n == 0:
+        if _n == 0:
             return OP_0
         else:
-            return CScriptOp(OP_1 + n-1)
+            return CScriptOp(OP_1 + _n - 1)
 
     def decode_op_n(self):
         """Decode a small integer opcode, returning an integer"""
@@ -92,13 +92,13 @@ class CScriptOp(int):
         else:
             return 'CScriptOp(0x%x)' % self
 
-    def __new__(cls, n):
+    def __new__(cls, _n):
         try:
-            return _opcode_instances[n]
+            return _opcode_instances[_n]
         except IndexError:
-            assert len(_opcode_instances) == n
-            _opcode_instances.append(super(CScriptOp, cls).__new__(cls, n))
-            return _opcode_instances[n]
+            assert len(_opcode_instances) == _n
+            _opcode_instances.append(super(CScriptOp, cls).__new__(cls, _n))
+            return _opcode_instances[_n]
 
 # Populate opcode instance table
 for n in range(0xff+1):
@@ -758,18 +758,18 @@ class CScript(bytes):
 
         Note that this is consensus-critical.
         """
-        n = 0
+        _n = 0
         lastOpcode = OP_INVALIDOPCODE
         for (opcode, data, sop_idx) in self.raw_iter():
             if opcode in (OP_CHECKSIG, OP_CHECKSIGVERIFY):
-                n += 1
+                _n += 1
             elif opcode in (OP_CHECKMULTISIG, OP_CHECKMULTISIGVERIFY):
                 if fAccurate and (OP_1 <= lastOpcode <= OP_16):
-                    n += opcode.decode_op_n()
+                    _n += opcode.decode_op_n()
                 else:
-                    n += 20
+                    _n += 20
             lastOpcode = opcode
-        return n
+        return _n
 
 
 SIGHASH_ALL = 1
@@ -859,7 +859,7 @@ def RawSignatureHash(script, txTo, inIdx, hashtype):
     HASH_ONE = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
     if inIdx >= len(txTo.vin):
-        return (HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin)))
+        return HASH_ONE, "inIdx %d out of range (%d)" % (inIdx, len(txTo.vin))
     txtmp = bitcoin.core.CMutableTransaction.from_tx(txTo)
 
     for txin in txtmp.vin:
@@ -876,7 +876,7 @@ def RawSignatureHash(script, txTo, inIdx, hashtype):
     elif (hashtype & 0x1f) == SIGHASH_SINGLE:
         outIdx = inIdx
         if outIdx >= len(txtmp.vout):
-            return (HASH_ONE, "outIdx %d out of range (%d)" % (outIdx, len(txtmp.vout)))
+            return HASH_ONE, "outIdx %d out of range (%d)" % (outIdx, len(txtmp.vout))
 
         tmp = txtmp.vout[outIdx]
         txtmp.vout = []
@@ -896,9 +896,9 @@ def RawSignatureHash(script, txTo, inIdx, hashtype):
     s = txtmp.serialize()
     s += struct.pack(b"<I", hashtype)
 
-    hash = bitcoin.core.Hash(s)
+    _hash = bitcoin.core.Hash(s)
 
-    return (hash, None)
+    return _hash, None
 
 
 def SignatureHash(script, txTo, inIdx, hashtype):

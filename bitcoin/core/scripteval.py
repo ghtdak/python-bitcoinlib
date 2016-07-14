@@ -410,9 +410,9 @@ def _EvalScript(stack, scriptIn, txTo, inIdx, flags=()):
             if nOpCount[0] > MAX_SCRIPT_OPCODES:
                 err_raiser(MaxOpCountError)
 
-        def check_args(n):
-            if len(stack) < n:
-                err_raiser(MissingOpArgumentsError, sop, stack, n)
+        def check_args(_n):
+            if len(stack) < _n:
+                err_raiser(MissingOpArgumentsError, sop, stack, _n)
 
 
         if sop <= OP_PUSHDATA4:
@@ -756,6 +756,8 @@ def VerifyScript(scriptSig, scriptPubKey, txTo, inIdx, flags=()):
     Raises a ValidationError subclass if the validation fails.
     """
     stack = []
+    stackCopy = None  # todo: referenced before assignment below???
+
     EvalScript(stack, scriptSig, txTo, inIdx, flags=flags)
     if SCRIPT_VERIFY_P2SH in flags:
         stackCopy = list(stack)

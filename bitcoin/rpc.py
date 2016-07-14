@@ -23,8 +23,8 @@ a different implementation can be used instead, at your own risk:
 thus better optimized but perhaps less stable.)
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-import ssl
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
 
 try:
     import http.client as httplib
@@ -387,7 +387,6 @@ class Proxy(BaseProxy):
         If account is not None, it is added to the address book so payments
         received with the address will be credited to account.
         """
-        r = None
         if account is not None:
             r = self._call('getnewaddress', account)
         else:
@@ -507,7 +506,6 @@ class Proxy(BaseProxy):
         confirmations, optionally filtered to only include txouts paid to
         addresses in addrs.
         """
-        r = None
         if addrs is None:
             r = self._call('listunspent', minconf, maxconf)
         else:
@@ -538,7 +536,6 @@ class Proxy(BaseProxy):
         allowhighfees - Allow even if fees are unreasonably high.
         """
         hextx = hexlify(tx.serialize())
-        r = None
         if allowhighfees:
             r = self._call('sendrawtransaction', hextx, True)
         else:

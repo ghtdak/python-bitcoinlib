@@ -96,9 +96,9 @@ class MsgSerializable(Serializable):
             raise ValueError("got bad checksum %s" % repr(recvbuf))
 
         if command in messagemap:
-            cls = messagemap[command]
+            cls_map = messagemap[command]
             #        print("Going to deserialize '%s'" % msg)
-            return cls.msg_deser(_BytesIO(msg))
+            return cls_map.msg_deser(_BytesIO(msg))
         else:
             print("Command '%s' not in messagemap" % repr(command))
             return None

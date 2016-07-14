@@ -110,13 +110,14 @@ class CBase58Data(bytes):
 
         return cls.from_bytes(data, _bord(verbyte[0]))
 
-    def __init__(self, s):
+    def __init__(self, _):
         """Initialize from base58-encoded string
 
         Note: subclasses put your initialization routines here, but ignore the
         argument - that's handled by __new__(), and .from_bytes() will call
         __init__() with None in place of the string.
         """
+        pass
 
     @classmethod
     def from_bytes(cls, data, nVersion):
